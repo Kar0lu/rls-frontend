@@ -9,4 +9,4 @@
 - [React](https://github.com/airbnb/javascript/tree/master/react)
 
 ## Guides
-- [Notion documentation](https://fancy-rule-a93.notion.site/Dokumentacja-Proxmox-120078cd02fd806e8124d22415e49323?pvs=74)
+- [Notion documentation](https://fancy-rule-a93.notion.site/rodowisko-developerskie-12e078cd02fd8014a207e4ec7bd3cab1?pvs=4)
