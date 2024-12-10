@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, Button, Typography, Box, Card, CardContent, Link } from '@mui/material';
+import { TextField, Button, Typography, Box, Card, CardContent, Tooltip } from '@mui/material';
 
 const sendGetRequest = async () => {
   try {
@@ -64,9 +64,14 @@ function LoginForm() {
               Login
             </Button>
             <Typography variant="caption" gutterBottom>
-              <Link href="https://google.com" target="_blank" rel="noopener noreferrer" color="secondary">
+              <Tooltip title="Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+               sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." arrow enterDelay={500} leaveDelay={200}>
+                <Button
+                color="secondary"
+                >
                 Skąd wziąć hasło?
-              </Link>
+                </Button>
+              </Tooltip>
             </Typography>
           </Box>
         </CardContent>
