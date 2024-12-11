@@ -14,12 +14,12 @@ function LandingPage() {
         background: 'linear-gradient(135deg, #1e1e2f, #1c1c25)',
       }}
     >
-      <Container maxWidth="md" sx={{ textAlign: 'center', mb: 5 }}>
-        <Typography variant="h2" component="h1" gutterBottom>
+      <Container maxWidth="lg" sx={{ textAlign: 'center', mb: 5 }}>
+        <Typography variant="h1" gutterBottom>
           Remote Lab System
         </Typography>
-        <Typography variant="h6" component="p">
-          Explore and control your remote laboratory resources, manage experiments, and access data in a single integrated platform.
+        <Typography variant="h6">
+          Kontroluj zdalne zasoby laboratoryjne, zarządzaj eksperymentami i uzyskuj dostęp do danych na jednej zintegrowanej platformie.
         </Typography>
       </Container>
       <LoginForm />

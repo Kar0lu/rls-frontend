@@ -42,12 +42,12 @@ function LoginForm() {
             }}
           >
             <TextField
-              label="Username"
+              label="Nazwa użytkownika"
               variant="outlined"
               fullWidth
             />
             <TextField
-              label="Password"
+              label="Hasło"
               type="password"
               variant="outlined"
               fullWidth
@@ -61,11 +61,10 @@ function LoginForm() {
               }}
               onClick={sendGetRequest}
             >
-              Login
+              Zaloguj
             </Button>
             <Typography variant="caption" gutterBottom>
-              <Tooltip title="Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-               sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." arrow enterDelay={500} leaveDelay={200}>
+              <Tooltip title="Skontaktuj się z kierownikiem swojego laboratorium" arrow enterDelay={500} leaveDelay={200}>
                 <Button
                 color="secondary"
                 >
