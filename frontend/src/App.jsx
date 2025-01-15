@@ -23,16 +23,14 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: '"Roboto", sans-serif',
-    h2: {
-      fontWeight: 'bold',
-      fontSize: '4rem',
+    h1: {
+      fontWeight: 'bold'
     },
     h3: {
       fontWeight: 400,
       fontSize: '2,5rem',
     },
     h6: {
-      fontSize: '1.25rem',
       fontWeight: 400,
       opacity: 0.7,
     },
