@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import HomePage from './pages/LandingPage';
+//import HomePage from './pages/LandingPage';
+import CallendarPage from './pages/CallendarPage'
 
 const theme = createTheme({
   palette: {
@@ -25,6 +26,10 @@ const theme = createTheme({
     h2: {
       fontWeight: 'bold',
       fontSize: '4rem',
+    },
+    h3: {
+      fontWeight: 400,
+      fontSize: '2,5rem',
     },
     h6: {
       fontSize: '1.25rem',
@@ -60,7 +65,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <HomePage />
+      <CallendarPage />
     </ThemeProvider>
   );
 }
