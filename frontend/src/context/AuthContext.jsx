@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from 'react'
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom'
+import { useSnackbar } from '../context/SnackbarContext';
 
 const AuthContext = createContext()
 
@@ -12,9 +13,21 @@ export const AuthProvider = ({children}) => {
     let [authTokens, setAuthTokens] = useState(() => (localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null))
     let [loading, setLoading] = useState(true)
 
+    const { showSnackbar } = useSnackbar();
+
     const navigate = useNavigate()
 
     let loginUser = async (username, password) => {
+        if(username=='') {
+            showSnackbar('Nazwa użytkownika nie może być pusta', 'warning')
+            return;
+        }
+
+        if(password=='') {
+            showSnackbar('Hasło nie może być puste', 'warning')
+            return;
+        }
+
         const response = await fetch('http://127.0.0.1:8000/api/token/', {
             method: 'POST',
             headers: {
@@ -25,13 +38,35 @@ export const AuthProvider = ({children}) => {
 
         let data = await response.json();
 
-        if(data){
-            localStorage.setItem('authTokens', JSON.stringify(data));
-            setAuthTokens(data)
-            setUser(jwtDecode(data.access))
-            navigate('/')
-        } else {
-            alert('Something went wrong while logging in the user!')
+        switch (response.status) {
+            case 400:
+                showSnackbar('Wpisano niepoprawne wartości', 'error');
+                return;
+        
+            case 401:
+                showSnackbar('Nieprawidłowe dane logowania', 'error');
+                return;
+        
+            case 200:
+                localStorage.setItem('authTokens', JSON.stringify(data));
+                setAuthTokens(data)
+                // setUserId(jwtDecode(data.access).id)
+                // setUsername(jwtDecode(data.access).username)
+                if(jwtDecode(data.access).is_staff){
+                    setUser('admin')
+                    navigate('/admin')
+                    showSnackbar(`Witaj ${jwtDecode(data.access).username}!`, 'success');
+                    return;
+                } else {
+                    setUser('user')
+                    navigate('/user')
+                    showSnackbar(`Witaj ${jwtDecode(data.access).username}!`, 'success');
+                    return;
+                }
+        
+            default:
+                showSnackbar('Wystąpił nieoczekiwany błąd 123', 'error');
+                return;
         }
     }
 
@@ -40,7 +75,7 @@ export const AuthProvider = ({children}) => {
         localStorage.removeItem('authTokens')
         setAuthTokens(null)
         setUser(null)
-        navigate('/login')
+        navigate('/admin')
     }
 
     const updateToken = async () => {
