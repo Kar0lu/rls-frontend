@@ -11,10 +11,6 @@ function LoginForm() {
     password: ''
   });
 
-  useEffect(() => {
-    console.log(formValues)
-  }, [formValues]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormValues((prevValues) => ({
