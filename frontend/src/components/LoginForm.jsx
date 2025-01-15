@@ -1,28 +1,32 @@
 /* eslint-disable no-unused-vars */
-import React from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import { TextField, Button, Typography, Box, Card, CardContent, Tooltip } from '@mui/material';
-
-const sendGetRequest = async () => {
-  try {
-    const response = await fetch("http://localhost:8000", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      const responseData = await response.json();
-      console.log("Response:", responseData);
-    } else {
-      console.log("Failed to send GET request");
-    }
-  } catch (error) {
-    console.error("Error sending GET request:", error);
-  }
-};
+import AuthContext from '../context/AuthContext';
 
 function LoginForm() {
+  let {loginUser} = useContext(AuthContext)
+
+  const [formValues, setFormValues] = useState({
+    username: '',
+    password: ''
+  });
+
+  useEffect(() => {
+    console.log(formValues)
+  }, [formValues]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues((prevValues) => ({
+        ...prevValues,
+        [name]: value,
+    }));
+  };
+
+  const handleLogin = () => {
+    loginUser(formValues.username, formValues.password)
+  }
+
   return (
     <Box
       sx={{
@@ -44,14 +48,19 @@ function LoginForm() {
           >
             <TextField
               label="Nazwa użytkownika"
+              type="text"
               variant="outlined"
               fullWidth
+              name="username"
+              onChange={handleInputChange}
             />
             <TextField
               label="Hasło"
               type="password"
               variant="outlined"
               fullWidth
+              name="password"
+              onChange={handleInputChange}
             />
             <Button
               variant="contained"
@@ -60,7 +69,7 @@ function LoginForm() {
               sx={{
                 mt: 2,
               }}
-              onClick={sendGetRequest}
+              onClick={handleLogin}
             >
               Zaloguj
             </Button>

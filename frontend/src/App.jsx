@@ -1,7 +1,12 @@
 import React from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-//import HomePage from './pages/LandingPage';
+import LandingPage from './pages/LandingPage';
 import CallendarPage from './pages/CallendarPage'
+
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import AdminRoute from './utils/AdminRoute'
+import UserRoute from './utils/UserRoute'
 
 const theme = createTheme({
   palette: {
@@ -63,7 +68,15 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <CallendarPage />
+      <Router>
+      <AuthProvider>
+          <Routes>
+              <Route path="/" element={<LandingPage/>}/>
+              <Route path="/admin" element={<AdminRoute><CallendarPage/></AdminRoute>} />
+              <Route path="/user" element={<UserRoute><CallendarPage/></UserRoute>} />
+          </Routes>
+      </AuthProvider>
+      </Router>
     </ThemeProvider>
   );
 }
