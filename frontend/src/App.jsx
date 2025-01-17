@@ -1,7 +1,14 @@
 import React from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-//import HomePage from './pages/LandingPage';
+import LandingPage from './pages/LandingPage';
 import CallendarPage from './pages/CallendarPage'
+
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import AdminRoute from './utils/AdminRoute'
+import UserRoute from './utils/UserRoute'
+
+import { AuthProvider } from './context/AuthContext'
+import { SnackbarProvider } from './context/SnackbarContext';
 
 const theme = createTheme({
   palette: {
@@ -63,7 +70,17 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <CallendarPage />
+      <SnackbarProvider>
+      <Router>
+      <AuthProvider>
+          <Routes>
+              <Route path="/" element={<LandingPage/>}/>
+              <Route path="/admin" element={<AdminRoute><CallendarPage/></AdminRoute>} />
+              <Route path="/user" element={<UserRoute><CallendarPage/></UserRoute>} />
+          </Routes>
+      </AuthProvider>
+      </Router>
+      </SnackbarProvider>
     </ThemeProvider>
   );
 }

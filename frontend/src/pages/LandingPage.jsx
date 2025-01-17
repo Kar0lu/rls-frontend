@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Container, Box } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import LoginForm from '../components/LoginForm';
 
 function LandingPage() {
@@ -14,14 +14,14 @@ function LandingPage() {
         background: 'linear-gradient(135deg, #1e1e2f, #1c1c25)',
       }}
     >
-      <Container maxWidth="lg" sx={{ textAlign: 'center', mb: 5 }}>
+      <Box maxWidth="lg" sx={{ textAlign: 'center', mb: 5 }}>
         <Typography variant="h1" gutterBottom>
           Remote Lab System
         </Typography>
         <Typography variant="h6">
           Kontroluj zdalne zasoby laboratoryjne, zarządzaj eksperymentami i uzyskuj dostęp do danych na jednej zintegrowanej platformie.
         </Typography>
-      </Container>
+      </Box>
       <LoginForm />
     </Box>
   );
