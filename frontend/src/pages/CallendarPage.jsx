@@ -4,7 +4,7 @@ import { Container, Box, Typography } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';;
-import StudentMenu from '../components/StudentMenu';
+import StudentMenu from '../components/Menu';
 import Harmonogram from '../components/Harmonogram';
 
 
@@ -19,20 +19,12 @@ function CallendarPage(){
             padding:0
         }}
          >
-        <Container disableGutters maxWidth={false} sx={{float:'left', backgroundColor:'background.paper', padding:0, width:250}}>
-            <StudentMenu/>
-        </Container>
-        <Container maxWidth="md">
+        <Box maxWidth="md">
             <Typography variant="h4" component="h1" gutterBottom> 
                 Harmonogram
             </Typography>
             <Harmonogram/>
-        </Container>
-        <Container>
-            
-        </Container>
-        
-
+        </Box>
     </Box>
     );
 }

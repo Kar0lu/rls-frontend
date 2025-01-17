@@ -16,8 +16,10 @@ function StudentMenu() {
           height: '100vh',
           width: '250px',
           margin: 0,
+          marginRight:'30px',
           float:'left',
-          textAlign:'left'
+          textAlign:'left',
+          backgroundColor:'background.paper'
         }}
       >
           <Typography pl={2} variant="h3" component="h1" gutterBottom>

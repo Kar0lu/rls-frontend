@@ -1,0 +1,20 @@
+{
+    "boards":[
+        {
+            "boardID":1,
+            "type": "Pynq"
+        },
+        {
+            "boardID":2,
+            "type": "CoraZ"
+        },
+        {
+            "boardID":3,
+            "type": "Digital Analog"
+        },
+        {
+            "boardID":4,
+            "type": "Pynq"
+        }
+    ]
+}
