@@ -1,7 +1,7 @@
 import React from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import LandingPage from './pages/LandingPage';
-import CallendarPage from './pages/CallendarPage'
+import HarmonogramPage from './pages/HarmonogramPage'
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import AdminRoute from './utils/AdminRoute'
@@ -9,6 +9,7 @@ import UserRoute from './utils/UserRoute'
 
 import { AuthProvider } from './context/AuthContext'
 import { SnackbarProvider } from './context/SnackbarContext';
+import SideNavProvider from './providers/SideNavProvider';
 
 const theme = createTheme({
   palette: {
@@ -73,11 +74,13 @@ function App() {
       <SnackbarProvider>
       <Router>
       <AuthProvider>
-          <Routes>
-              <Route path="/" element={<LandingPage/>}/>
-              <Route path="/admin" element={<AdminRoute><CallendarPage/></AdminRoute>} />
-              <Route path="/user" element={<UserRoute><CallendarPage/></UserRoute>} />
-          </Routes>
+      <SideNavProvider>
+        <Routes>
+            <Route path="/" element={<LandingPage/>}/>
+            <Route path="/admin" element={<AdminRoute><HarmonogramPage/></AdminRoute>} />
+            <Route path="/user" element={<UserRoute><HarmonogramPage/></UserRoute>} />
+        </Routes>
+      </SideNavProvider>
       </AuthProvider>
       </Router>
       </SnackbarProvider>

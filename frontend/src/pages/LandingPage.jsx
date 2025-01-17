@@ -2,7 +2,7 @@ import React from 'react';
 import { Typography, Box } from '@mui/material';
 import LoginForm from '../components/LoginForm';
 
-function LandingPage() {
+const LandingPage = () => {
   return (
     <Box
       sx={{
