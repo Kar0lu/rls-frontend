@@ -1,6 +1,8 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import AuthContext from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom';
 
 const MenuButton = styled(Button)(() => ({
   justifyContent: 'left',
@@ -9,6 +11,13 @@ const MenuButton = styled(Button)(() => ({
 }));
 
 const SideNavWrapper = ({ children }) => {
+  const { user, logoutUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleClick = (path) => {
+    navigate(path);
+  };
+
   return(
     <Box sx={{ display: 'flex', height: '100vh' }}>
       <Box
@@ -31,10 +40,18 @@ const SideNavWrapper = ({ children }) => {
             borderColor: '#383ecc',
           }}
         >
-          <MenuButton color="secondary">Harmonogram</MenuButton>
-          <MenuButton color="secondary">Rezerwacje</MenuButton>
-          <MenuButton color="secondary">Folder domowy</MenuButton>
-          <MenuButton color="secondary">Profil</MenuButton>
+          <MenuButton color="secondary" onClick={() => handleClick('/harmonogram')}>Harmonogram</MenuButton>
+          {user=='user' && (<>
+            <MenuButton color="secondary" onClick={() => handleClick('/user-reservations')}>Rezerwacje</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/user-folder')}>Folder domowy</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/user-profile')}>Profil</MenuButton>
+          </>)}
+          {user=='admin' && (<>
+            <MenuButton color="secondary" onClick={() => handleClick('/admin-reservations')}>Rezerwacje</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/admin-users')}>Użytkownicy</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/admin-profile')}>Profil</MenuButton>
+          </>)}
+          <MenuButton color="secondary" onClick={logoutUser}>Wyloguj</MenuButton>
         </Box>
       </Box>
 
