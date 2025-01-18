@@ -180,7 +180,7 @@ useEffect(() => {
         </Button>
       </Box>
     </Box>
-    <HarmonogramModal open={open} handleClose={handleClose} selectedDate={selectedDate}/>
+    <HarmonogramModal open={open} onClose={handleClose} selectedDate={selectedDate}/>
     </LocalizationProvider>
   );
 };
