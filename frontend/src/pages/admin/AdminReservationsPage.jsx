@@ -1,6 +1,6 @@
 import React from 'react';
 import {Box } from '@mui/material';
-import Reservations from '../components/Reservations';
+import Reservations from '../../components/Reservations';
 
 const AdminReservationsPage = () => {
     return(
@@ -19,4 +19,4 @@ const AdminReservationsPage = () => {
     </Box>
     );
 }
-export default AdminReservationsPage
+export default AdminReservationsPage;

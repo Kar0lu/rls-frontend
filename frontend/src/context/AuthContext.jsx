@@ -16,10 +16,6 @@ export const AuthProvider = ({children}) => {
 
     const navigate = useNavigate()
 
-    useEffect(() => {
-        console.log(user)
-    }, [user]);
-
     let loginUser = async (username, password) => {
         if(username=='') {
             showSnackbar('Nazwa użytkownika nie może być pusta', 'warning')
@@ -49,7 +45,7 @@ export const AuthProvider = ({children}) => {
                 setAuthTokens(data);
                 const isAdmin = jwtDecode(data.access).is_staff;
                 setUser(isAdmin ? 'admin' : 'user');
-                navigate(isAdmin ? '/admin' : '/user');
+                navigate('/harmonogram');
                 showSnackbar(`Witaj ${jwtDecode(data.access).username}!`, 'success');
             } else {
                 if (response.status === 400){
@@ -67,12 +63,11 @@ export const AuthProvider = ({children}) => {
         }
     }
 
-    let logoutUser = (e) => {
-        e.preventDefault()
+    let logoutUser = () => {
         localStorage.removeItem('authTokens')
         setAuthTokens(null)
         setUser(null)
-        navigate('/admin')
+        navigate('/')
     }
 
     const updateToken = async () => {
@@ -91,10 +86,6 @@ export const AuthProvider = ({children}) => {
             localStorage.setItem('authTokens',JSON.stringify(data))
         } else {
             logoutUser()
-        }
-
-        if(loading){
-            setLoading(false)
         }
     }
 
