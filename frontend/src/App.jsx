@@ -10,6 +10,7 @@ import SideNavWrapper from './wrappers/SideNavWrapper';
 
 import LandingPage from './pages/LandingPage';
 import HarmonogramPage from './pages/HarmonogramPage'
+import AdminReservationModal from './pages/AdminReservationsPage'
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 
@@ -28,6 +29,13 @@ function App() {
               <AdminRoute>
                 <SideNavWrapper>
                   <HarmonogramPage/>
+                </SideNavWrapper>
+              </AdminRoute>
+            }/>
+            <Route path="/admin_reservations" element={
+              <AdminRoute>
+                <SideNavWrapper>
+                  <AdminReservationModal/>
                 </SideNavWrapper>
               </AdminRoute>
             }/>
