@@ -5,7 +5,7 @@ import { Box, Typography } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { useFormStatus } from 'react-dom';
-import ReservationModal from '../modals/ReservationModal';
+import ReservationModal from '../../modals/ReservationModal.jsx';
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'; 
 
