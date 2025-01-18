@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect } from 'react'
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom'
-import { useSnackbar } from '../context/SnackbarContext';
+import { useOverlay } from './OverlayContext';
 
 const AuthContext = createContext()
 
@@ -9,13 +9,16 @@ export default AuthContext;
 
 export const AuthProvider = ({children}) => {
 
-    let [user, setUser] = useState(() => (localStorage.getItem('authTokens') ? jwtDecode(localStorage.getItem('authTokens')) : null))
+    let [user, setUser] = useState(() => (localStorage.getItem('authTokens') ? jwtDecode(localStorage.getItem('authTokens')).is_staff ? 'admin' : 'user' : null))
     let [authTokens, setAuthTokens] = useState(() => (localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null))
-    let [loading, setLoading] = useState(true)
 
-    const { showSnackbar } = useSnackbar();
+    const { showSnackbar, showLoading, hideLoading } = useOverlay();
 
     const navigate = useNavigate()
+
+    useEffect(() => {
+        console.log(user)
+    }, [user]);
 
     let loginUser = async (username, password) => {
         if(username=='') {
@@ -28,45 +31,39 @@ export const AuthProvider = ({children}) => {
             return;
         }
 
-        const response = await fetch('http://127.0.0.1:8000/auth/token/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({username: username, password: password})
-        });
+        showLoading();
 
-        let data = await response.json();
+        try{
+            const response = await fetch('http://127.0.0.1:8000/auth/token/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({username: username, password: password})
+            });
 
-        switch (response.status) {
-            case 400:
-                showSnackbar('Wpisano niepoprawne wartości', 'error');
-                return;
-        
-            case 401:
-                showSnackbar('Nieprawidłowe dane logowania', 'error');
-                return;
-        
-            case 200:
+            const data = await response.json();
+
+            if (response.status === 200) {
                 localStorage.setItem('authTokens', JSON.stringify(data));
-                setAuthTokens(data)
-                // setUserId(jwtDecode(data.access).id)
-                // setUsername(jwtDecode(data.access).username)
-                if(jwtDecode(data.access).is_staff){
-                    setUser('admin')
-                    navigate('/admin')
-                    showSnackbar(`Witaj ${jwtDecode(data.access).username}!`, 'success');
-                    return;
+                setAuthTokens(data);
+                const isAdmin = jwtDecode(data.access).is_staff;
+                setUser(isAdmin ? 'admin' : 'user');
+                navigate(isAdmin ? '/admin' : '/user');
+                showSnackbar(`Witaj ${jwtDecode(data.access).username}!`, 'success');
+            } else {
+                if (response.status === 400){
+                    showSnackbar('Wpisano nieprawidłowe wartości', 'error');
+                } else if (response.status === 401){
+                    showSnackbar('Nieprawidłowe dane logowania', 'error');
                 } else {
-                    setUser('user')
-                    navigate('/user')
-                    showSnackbar(`Witaj ${jwtDecode(data.access).username}!`, 'success');
-                    return;
+                    showSnackbar('Wystąpił nieoczekiwany błąd', 'error');
                 }
-        
-            default:
-                showSnackbar('Wystąpił nieoczekiwany błąd 123', 'error');
-                return;
+            }
+        } catch (error) {
+            showSnackbar('Wystąpił nieoczekiwany błąd', 'error');
+        } finally {
+            hideLoading();
         }
     }
 

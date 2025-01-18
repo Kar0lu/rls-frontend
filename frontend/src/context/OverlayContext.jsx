@@ -1,17 +1,18 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import React, { createContext, useState, useCallback, useContext, useEffect } from 'react';
+import { Snackbar, Alert, Backdrop, CircularProgress } from '@mui/material';
 
 // Create the context
-const SnackbarContext = createContext();
+const OverlayContext = createContext();
 
 // Provider component
-export const SnackbarProvider = ({ children }) => {
+export const OverlayProvider = ({ children }) => {
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'info', // 'success', 'error', 'warning', 'info'
   });
+
+  const [loading, setLoading] = useState(false);
 
   // Show the snackbar
   const showSnackbar = useCallback((message, severity = 'info') => {
@@ -27,9 +28,16 @@ export const SnackbarProvider = ({ children }) => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   }, []);
 
+  // Show loading spinner
+  const showLoading = useCallback(() => setLoading(true), []);
+
+  // Hide loading spinner
+  const hideLoading = useCallback(() => setLoading(false), []);
+
   return (
-    <SnackbarContext.Provider value={{ showSnackbar }}>
+    <OverlayContext.Provider value={{ showSnackbar, showLoading, hideLoading }}>
       {children}
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
@@ -40,9 +48,13 @@ export const SnackbarProvider = ({ children }) => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </SnackbarContext.Provider>
+
+      <Backdrop open={loading} sx={{ color: '#fff', zIndex: 1300 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    </OverlayContext.Provider>
   );
 };
 
 // Custom hook to use the snackbar context
-export const useSnackbar = () => useContext(SnackbarContext);
+export const useOverlay = () => useContext(OverlayContext);
