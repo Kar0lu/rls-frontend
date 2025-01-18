@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useState} from 'react';
 import { TextField, Button, Typography, Box, Card, CardContent, Tooltip } from '@mui/material';
 import AuthContext from '../context/AuthContext';
 
