@@ -190,7 +190,7 @@ const HarmonogramPage = () => {
           }}
           shouldDisableDate={(date) => {
             // TODO: adjust calendarData for this format
-            return calendarData.some((d) => d.isSame(date, "day"))
+            // return calendarData.some((d) => d.isSame(date, "day"))
           }}
           onChange={(newDate) => {
             setFormValues((prevValues) => ({
