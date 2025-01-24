@@ -18,9 +18,15 @@ const LandingPage = () => {
     }));
   };
 
-  const handleLogin = () => {
+  const handleClick = () => {
     loginUser(formValues.username, formValues.password)
   }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      loginUser(formValues.username, formValues.password)
+    }
+  };
 
   return (
     <Box
@@ -51,6 +57,7 @@ const LandingPage = () => {
               flexDirection: 'column',
               gap: 2,
             }}
+            onKeyDown={handleKeyDown}
           >
             <TextField
               label="Nazwa użytkownika"
@@ -73,7 +80,7 @@ const LandingPage = () => {
               color="primary"
               fullWidth
               sx={{ mt: 2 }}
-              onClick={handleLogin}
+              onClick={handleClick}
             >
               Zaloguj
             </Button>
