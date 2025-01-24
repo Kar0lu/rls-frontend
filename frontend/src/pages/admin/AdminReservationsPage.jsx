@@ -1,70 +1,148 @@
-import { Modal } from '@mui/material';
 import { DataGrid, GridToolbar,   GridActionsCellItem,} from '@mui/x-data-grid';
-import React, {useContext, useEffect, useState} from 'react';
-import { Box, Typography } from '@mui/material';
+import React, {useContext, useEffect, useState, } from 'react';
+import {Box} from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { useFormStatus } from 'react-dom';
 import ReservationModal from '../../modals/ReservationModal.jsx';
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'; 
+import AuthContext from '../../context/AuthContext.jsx';
+import { useOverlay } from '../../context/OverlayContext.jsx';
 
 
 const AdminReservationsPage = () => {
     const[names, setNames] = useState([]);
+    const[devices,setDevices] =useState([]);
+    const[types, setTypes] =useState([]);
     const[allReservations, setAllReservations] = useState([]);
     const[selectedReservation, setSelectedReservation] = useState([]);
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = useState(false);
 
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+    const { authTokens } = useContext(AuthContext);
+    const { showSnackbar, showLoading, hideLoading } = useOverlay();
 
-    const style = {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 400,
-        bgcolor: 'background.paper',
-        border: '2px solid #000',
-        boxShadow: 24,
-        p: 4,
-      };
-    
-    useEffect(() => {
-        const fetchData = async () => {
-          const namesResponse = await fetch("/namestemporary.json");
-          const namesData = await namesResponse.json();
-          const namesList = namesData.students.map((row, index) => ({
+    const fetchData = () => {
+      showLoading();
+    try{
+      
+      Promise.all([
+        fetch('http://127.0.0.1:8000/api/users/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authTokens.access}`,
+          },
+        }),
+        fetch('http://127.0.0.1:8000/api/devices/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authTokens.access}`,
+          },
+        }),
+        fetch('http://127.0.0.1:8000/api/deviceTypes/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authTokens.access}`,
+          },
+        }),
+        fetch('http://127.0.0.1:8000/api/reservations/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authTokens.access}`,
+          },
+        }),
+      ])
+      .then(([usersResponse, devicesResponse, typesResponse, reservationsResponse]) => {
+        if (
+          !usersResponse.ok ||
+          !devicesResponse.ok ||
+          !typesResponse.ok ||
+          !reservationsResponse.ok
+        ) {
+          showSnackbar('Nastąpił problem z połączeniem z bazą danych', 'error');
+          hideLoading();
+          return;
+        }
+
+        return Promise.all([
+          usersResponse.json(),
+          devicesResponse.json(),
+          typesResponse.json(),
+          reservationsResponse.json(),
+        ]);
+      })   
+        
+        .then(([usersData, devicesData, typesData, reservationsData]) => {
+          
+          const transformedUsersData = usersData.results.map((user, index) => ({
             id: index + 1,
-            studentID: row.studentID,
-            name: row.firstName,
-            surname: row.lastName,
+            studentID: user.id,
+            name: user.first_name,
+            surname: user.last_name,
           }));
-          setNames(namesList);
+          setNames(transformedUsersData);
     
-          const reservationsResponse = await fetch("/userstemporary.json");
-          const reservationsData = await reservationsResponse.json();
-          const processedReservations = reservationsData.reservations.map((row, index) => {
-            const student = namesList.find((student) => student.studentID === row.studentID);
+          const transformedDevicesData = devicesData.results.map((device) => ({
+            id: device.device_id,
+            deviceType: device.device_type,
+          }));
+          setDevices(transformedDevicesData);
+    
+          const transformedtypesData = typesData.results.map((type) => ({
+            id: type.device_type_id,
+            model: type.model,
+          }));
+          setTypes(transformedtypesData);
+    
+          const reservations = reservationsData.results || [];
+          const processedReservations = reservations.map((row) => {
+            const student = transformedUsersData.find((student) => student.studentID === row.user);
+            let deviceModels = [];
+            if (row.devices?.length > 0) {
+              row.devices.forEach((deviceId) => {
+                const device = transformedDevicesData.find((device) => device.id === deviceId);
+                if (device) {
+                  const deviceType = transformedtypesData.find((type) => type.id === device.deviceType);
+                  if (deviceType) {
+                    deviceModels.push(deviceType.model);
+                  }
+                }
+              });
+            }
+            const platform = deviceModels.length > 0 ? deviceModels.join(', ') : 'Brak urządzeń';
             return {
-              id: row.reservationID, 
-              studentID: row.studentID,
-              studentFullName: student ? `${student.name} ${student.surname}` : "Unknown",
-              hour: dayjs(row.hour, 'hh:mm'),
-              endHour: dayjs(row.endHour, 'hh:mm'),
-              date: dayjs(row.date),
-              griddate: `${row.date} ${row.hour}-${row.endHour}`,
-              position: row.infrastructure.find((item) => item.Board)?.Board || "",
-              platform: row.infrastructure.find((item) => item.Program)?.Program || "",
+              id: row.reservation_id,
+              studentID: row.user,
+              studentFullName: student ? `${student.name} ${student.surname}` : 'Unknown',
+              startHour: dayjs(row.valid_since).format('HH:mm'),
+              endHour: dayjs(row.valid_until).format('HH:mm'),
+              date: dayjs(row.valid_since).format('DD/MM/YYYY'),
+              griddate: `${dayjs(row.valid_since).format('DD/MM/YYYY')} ${dayjs(row.valid_since).format('HH:mm')}-${dayjs(row.valid_until).format('HH:mm')}`,
+              position: row.container,
+              platform: platform,
+              status: row.status,
             };
           });
           setAllReservations(processedReservations);
-        };
-        fetchData();
-      }, [names]);
+          hideLoading();
+        })
+      }
+      catch (error) {
+        showSnackbar('Wystąpił nieoczekiwany błąd', 'error');
+        hideLoading();
+    }
+    };
 
+    useEffect(() => {
+      fetchData();
+    }, []);
+      
 const columns = [
     { field: "griddate", headerName: "Data", width: 200 },
     { field: "studentFullName", headerName: "Student", width: 150 },
@@ -90,39 +168,33 @@ const columns = [
     },
   ];
     return(
-<LocalizationProvider dateAdapter={AdapterDayjs}>
-    <Box>
-        <DataGrid
-        rows={allReservations}
-        components={{ Toolbar: GridToolbar }}
-        columns={columns}
-        pageSizeOptions={[10,15]}
-        initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
-              },
-            },
-          }}
-          disableRowSelectionOnClick
-        />
-        {selectedReservation && (
-        <ReservationModal
-          open={open}
-          handleClose={handleClose}
-          date={dayjs(selectedReservation.date)}
-          start={selectedReservation.hour}
-          end={selectedReservation.endHour}
-          platform={selectedReservation.platform}
-          position={selectedReservation.position}
-          name={selectedReservation.studentFullName}
-          id={selectedReservation.id}
-        />
-      )}
-    </Box>
-</LocalizationProvider>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Box>
+                  <DataGrid
+                  rows={allReservations}
+                  components={{ Toolbar: GridToolbar }}
+                  columns={columns}
+                  pageSizeOptions={[10,15]}
+                  initialState={{
+                      pagination: {
+                        paginationModel: {
+                          pageSize: 10,
+                        },
+                      },
+                    }}
+                    disableRowSelectionOnClick
+                  />
+                  {selectedReservation && (
+                  <ReservationModal
+                    open={open}
+                    onClose={handleClose}
+                    fetchData = {fetchData}
+                    reservation={selectedReservation}
+                  />
+                )}
+              </Box>
+          </LocalizationProvider>
 
 )
-}
-
+};
 export default AdminReservationsPage
