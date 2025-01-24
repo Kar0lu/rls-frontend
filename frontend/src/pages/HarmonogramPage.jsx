@@ -30,25 +30,27 @@ const HarmonogramPage = () => {
     platforms_id: [],
   });
 
-  const deviceTypesFetch = async () => {
-    fetch('http://127.0.0.1:8000/api/deviceTypes/', {
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authTokens.access}`
-      }
-    })
-    .then((response) => response.json())
-    .then((data) => {
-      const platforms = data.results.map(item => ({
-        device_type_id: item.device_type_id,
-        model: item.make + ' ' + item.model
-      }));
-      setPlatformsPicker(platforms);
-    })
+  const deviceTypesFetch = () => {
+    if(authTokens) {
+      fetch('http://127.0.0.1:8000/api/deviceTypes/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authTokens.access}`
+        }
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        const platforms = data.results.map(item => ({
+          device_type_id: item.device_type_id,
+          model: item.make + ' ' + item.model
+        }));
+        setPlatformsPicker(platforms);
+      })
+    }
   }
 
-  const hoursLeftFetch = async () => {
+  const hoursLeftFetch = () => {
     fetch('http://127.0.0.1:8000/api/user/hoursLeft/', {
       method: 'GET',
       headers: {
@@ -67,7 +69,7 @@ const HarmonogramPage = () => {
     })
   }
 
-  const calendarFetch = async (newMonth) => {
+  const calendarFetch = (newMonth) => {
     const queryParams = new URLSearchParams({
       year: formValues.selectedDate.year(),
       month: newMonth ? newMonth : formValues.selectedDate.month(),
@@ -88,7 +90,7 @@ const HarmonogramPage = () => {
     })
   }
 
-  const dataGridFetch = async () => {
+  const dataGridFetch = () => {
     const queryParams = new URLSearchParams({
       year: formValues.selectedDate.year(),
       month: formValues.selectedDate.month(),
