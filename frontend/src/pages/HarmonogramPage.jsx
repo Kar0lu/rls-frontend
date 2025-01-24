@@ -1,159 +1,173 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Autocomplete, TextField } from '@mui/material';
+import React, { useState, useEffect, useContext } from 'react';
+import { Box, Button, Autocomplete, Chip, TextField } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { LocalizationProvider, DateCalendar } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import 'dayjs/locale/pl';
+
+import AuthContext from '../context/AuthContext';
 
 import HarmonogramModal from '../modals/HarmonogramModal';
 
-const HarmonogramPage = () => {
-
-  const [formValues, setFormValues] = useState({
-    position: '',
-    platform: ''
-  });
-  const [postData, setPostData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedPosition, setSelectedPosition] = useState("PynqZ2");
-  const [selectedPlatform, setSelectedPlatform] = useState("Vivado");
-  const [positions, setPositions] = useState([]);
-  const [platforms, setPlatforms] = useState([]);
+const HarmonogramPage = () => {  
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const handleAutocompleteChange = (field, value) => {
-    setFormValues((prev) => ({ ...prev, [field]: value }));
-    if (field === 'position') {
-      setSelectedPosition(value);
-    } else if (field === 'platform') {
-      setSelectedPlatform(value);
-    }
-  };
+  dayjs.locale('pl');
 
-  useEffect(() => {
-    setSelectedDate(dayjs());
-  }, []);
+  const { user, authTokens } = useContext(AuthContext);
+  const [platformsPicker, setPlatformsPicker] = useState([]);
+  const [disableSubmit, setDisableSubmit] = useState(true);
+  const [hoursLeft, setHoursLeft] = useState(null);
 
+  const [calendarData, setCalendarData] = useState(null);
+  const [dataGridData, setDataGridData] = useState(null);
 
-  useEffect(() => {
-    fetch('/boardtemporary.json')
-      .then((response) => response.json())
-      .then((data) => {
-          const uniqueTypes = Array.from(new Set(data.boards.map((board) => board.type)));
-          const mappedPlatforms = uniqueTypes.map((type, index) => ({
-            id: index + 1,
-            name: `${type}`,
-          }));
-          
-          setPlatforms(mappedPlatforms);
-        }
-      )
-      .catch((error) => console.error('Error loading boards:', error));
-  }, []);
+  const [formValues, setFormValues] = useState({
+    selectedDate: dayjs(),
+    platforms_id: [],
+  });
 
-useEffect(() => {
-  fetch('/positiontemporary.json')
-    .then((response) => response.json())
-    .then((data) => {
-      const mappedPositions = data.platforms.map((platform) => ({
-        id: platform.platformID,
-        name: `Stanowisko ${platform.platformID}`,
-      }));
-      setPositions(mappedPositions);
-      if (!selectedPosition && mappedPositions.length > 0) {
-        setSelectedPosition(mappedPositions[0]);
+  const deviceTypesFetch = async () => {
+    fetch('http://127.0.0.1:8000/api/deviceTypes/', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authTokens.access}`
       }
     })
-    .catch((error) => console.error('Error loading platforms:', error));
-}, [selectedPosition]);
-      
+    .then((response) => response.json())
+    .then((data) => {
+      const platforms = data.results.map(item => ({
+        device_type_id: item.device_type_id,
+        model: item.make + ' ' + item.model
+      }));
+      setPlatformsPicker(platforms);
+    })
+  }
+
+  const hoursLeftFetch = async () => {
+    fetch('http://127.0.0.1:8000/api/user/hoursLeft/', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authTokens.access}`
+      }
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      setHoursLeft(data.hours_left)
+      if(data.hours_left != 0 && data.hours_left != null) {
+        setDisableSubmit(false)
+      } else {
+        setDisableSubmit(true)
+      }
+    })
+  }
+
+  const calendarFetch = async (newMonth) => {
+    const queryParams = new URLSearchParams({
+      year: formValues.selectedDate.year(),
+      month: newMonth ? newMonth : formValues.selectedDate.month(),
+      device_types: formValues.device_types.join('&device_types='),
+    });
+
+    fetch(`http://127.0.0.1:8000/api/availability/?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authTokens.access}`
+      }
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data)
+      setCalendarData(data)
+    })
+  }
+
+  const dataGridFetch = async () => {
+    const queryParams = new URLSearchParams({
+      year: formValues.selectedDate.year(),
+      month: formValues.selectedDate.month(),
+      day: formValues.selectedDate.day(),
+      device_types: formValues.device_types,
+    });
+
+    fetch(`http://127.0.0.1:8000/api/availability/?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authTokens.access}`
+      }
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data)
+      setDataGridData(data)
+    })
+  }
+
+  // Loading deviceTypes and hoursLeft on mount
   useEffect(() => {
-    fetch("/userstemporary.json")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (!data.reservations) {
-          throw new Error("Invalid data format: 'reservations' key not found.");
-        }
-        const formattedData = data.reservations.map((row, index) => ({
-          id: index + 1,
-          reservationID: row.reservationID,
-          studentID: row.studentID,
-          hour: `${row.hour}:00`,
-          date: row.date,
-          position: row.infrastructure.find((item) => item.Board)?.Board || "",
-          platform: row.infrastructure.find((item) => item.Program)?.Program || "",
-          login: row.login,
-          password: row.password
-        }));
-        setPostData(formattedData);
-      });
+    deviceTypesFetch()
+    hoursLeftFetch()
   }, []);
 
+  // Setting up columns when dataGridData is changed
+  // TODO: adjust when API is ready
+  const [columns, setColumns] = useState([])
   useEffect(() => {
-    if (selectedDate) {
-      const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
-      const hours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00:00`);
-
-      const filtered = hours.map((hour) => {
-        const matches = postData.filter((row) => row.date === formattedDate && row.hour === hour);
-
-        const isPositionAvailable = matches.every((row) => row.position !== selectedPosition);
-        const isPlatformAvailable = matches.every((row) => row.platform !== selectedPlatform);
-
-        return {
-          id: hour,
-          hour,
-          position: isPositionAvailable ? "Dostępne" : "Niedostępne",
-          platform: isPlatformAvailable ? "Dostępne" : "Niedostępne"
-        };
-      });
-      setFilteredData(filtered);
-    } else {
-      setFilteredData([]);
+    if(dataGridData) {
+      const staticColumns = {
+        field: 'hour',
+        headerName: 'Godzina',
+        width: 100,
+      };
+  
+      const dynamicColumns = Object.keys(dataGridData.containers).map(key => ({
+        field: key,
+        headerName: 'Stanowisko ' + key,
+        width: 150,
+      }));
+  
+      setColumns([staticColumns, ...dynamicColumns]);
     }
-  }, [selectedDate, selectedPosition, selectedPlatform, postData]);
-
-
-
-  const columns = [
-    { field: "hour", headerName: "Hour", width: 150 },
-    { field: "position", headerName: "Position", width: 150 },
-    { field: "platform", headerName: "Platform", width: 150 }
-  ];
+  }, [dataGridData]);
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pl">
     <Box sx={{ display: "flex", gap: 2 }}>
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
         <Autocomplete
+          multiple
+          options={platformsPicker}
+          getOptionLabel={(option) => option.model}
           onChange={(event, value) => {
-            handleAutocompleteChange(
-              setSelectedPlatform(value ? value.id : null)
-            );
+            if (value) {
+              setFormValues((prevValues) => ({
+                  ...prevValues,
+                  platforms_id: value.map((item) => item.device_type_id)
+              }));
+              calendarFetch()
+              dataGridFetch()
+            }
           }}
-          options={platforms}
-          getOptionLabel={(option) => option.name}
-          isOptionEqualToValue={(option, value) => option.id === value.id}
           renderInput={(params) => (
-            <TextField {...params} label="Platforma" variant="outlined" />
+            <TextField {...params} label="Platforma" />
+          )}
+          renderOption={(props, option) => (
+            <li {...props} key={option.device_type_id}>
+              {option.model}
+            </li>
           )}
         />
         <DataGrid
-          rows={filteredData}
+          rows={dataGridData}
           columns={columns}
-          checkboxSelection
           disableRowSelectionOnClick
-          isRowSelectable={(params) =>
-            params.row.platform === "Dostępne" && params.row.position === "Dostępne"
-          }
           pageSizeOptions={[8]}
           initialState={{
             pagination: {
@@ -167,20 +181,32 @@ useEffect(() => {
       </Box>
 
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-        
         <DateCalendar
-          value={selectedDate}
+          value={formValues.selectedDate}
           minDate={dayjs()}
           defaultValue={dayjs()}
-          onChange={(newDate) => setSelectedDate(newDate)}
+          onMonthChange={(newMonth) => {
+            calendarFetch(newMonth)
+          }}
+          shouldDisableDate={(date) => {
+            // TODO: adjust calendarData for this format
+            return calendarData.some((d) => d.isSame(date, "day"))
+          }}
+          onChange={(newDate) => {
+            setFormValues((prevValues) => ({
+              ...prevValues,
+              selectedDate: newDate,
+            }))
+            dataGridFetch()
+          }}
         />
         
-        <Button variant="contained" onClick={handleOpen}>
-          Open modal
+        <Button variant="contained" onClick={handleOpen} disabled={disableSubmit}>
+          Zarezerwuj
         </Button>
       </Box>
     </Box>
-    <HarmonogramModal open={open} onClose={handleClose} selectedDate={selectedDate}/>
+    <HarmonogramModal open={open} onClose={handleClose} selectedDate={formValues.selectedDate}/>
     </LocalizationProvider>
   );
 };
