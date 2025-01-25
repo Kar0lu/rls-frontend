@@ -54,11 +54,10 @@ const AdminReservationsPage = () => {
                     id: row.reservation_id,
                     studentID: user.id,
                     studentFullName: fullName,
-                    startHour: dayjs(row.valid_since).format('HH:mm'),
-                    endHour: dayjs(row.valid_until).format('HH:mm'),
-                    date: dayjs(row.valid_since).format('DD/MM/YYYY'),
-                    griddate: `${dayjs(row.valid_since).format('DD/MM/YYYY')} ${dayjs(row.valid_since).format('HH:mm')}-${dayjs(row.valid_until).format('HH:mm')}`,
-                    position: row.container,
+                    startHour: row.valid_since,
+                    endHour: row.valid_until,
+                    date: row.valid_since,
+                    position: row.container.container_id,
                     platform: platforms,
                     status: row.status,
           };
@@ -88,7 +87,20 @@ useEffect(() => {
 
       
 const columns = [
-    { field: "griddate", headerName: "Data", width: 200 },
+    { field: "date", headerName: "Data", width: 200, valueFormatter: (params) => {
+          const date = dayjs(params)
+          return date.isValid() ? date.format('YYYY-MM-DD') : 'Invalid Date';
+      }},
+  { field: "startHour", headerName: "Godzina rozpoczęcia", width: 200, valueFormatter: (params) => {
+        const date2 = dayjs(params)
+        return date2.isValid() ? date2.format('HH:mm') : 'Invalid Date';
+    }
+  },
+  { field: "endHour", headerName: "Godzina zakończenia", width: 200, valueFormatter: (params) => {
+        const date = dayjs(params)
+        return date.isValid() ? date.format('HH:mm') : 'Invalid Date';
+    }},
+    
     { field: "studentFullName", headerName: "Student", width: 150 },
     { field: "information",
       headerName: "Informacje",

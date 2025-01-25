@@ -2,6 +2,7 @@ import React, { useContext} from 'react';
 import { Box,TextField, Button} from '@mui/material';
 import GenericModal from './GenericModal';
 import AuthContext from '../context/AuthContext';
+import dayjs from 'dayjs';
 import { useOverlay } from '../context/OverlayContext'
 
 
@@ -39,15 +40,15 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
     return (  
         <GenericModal open={open} onClose={onClose} title={'Rezerwacja'}>
 
-              <TextField  label='Data rezerwacji' value={reservation.date}
+              <TextField  label='Data rezerwacji' value={dayjs(reservation.date).format('DD/MM/YYYY')}
               sx={{width:300}} color='primary' disabled focused />
 
           <Box sx={{display: 'flex', width:300, marginBottom:1}}>
 
-              <TextField  label='Godzina rozpoczęcia' value={reservation.startHour}
+              <TextField  label='Godzina rozpoczęcia' value={dayjs(reservation.startHour).format('HH:mm')}
               sx={{width:150}} color='primary' disabled focused />
 
-              <TextField  label='Godzina zakończenia' value={reservation.endHour}
+              <TextField  label='Godzina zakończenia' value={dayjs(reservation.endHour).format('HH:mm')}
               sx={{width:150, marginLeft:3}} color='primary' disabled />
 
           </Box>
