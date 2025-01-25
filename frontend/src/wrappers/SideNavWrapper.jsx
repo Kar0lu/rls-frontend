@@ -2,21 +2,27 @@ import React, {useContext} from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AuthContext from '../context/AuthContext'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation  } from 'react-router-dom';
 
-const MenuButton = styled(Button)(() => ({
+const MenuButton = styled(({ active, ...rest }) => <Button {...rest} />)(({ theme, active }) => ({
   justifyContent: 'left',
   paddingLeft: '15px',
   borderColor: 'primary',
+  ...(active && {
+    backgroundColor: theme.palette.action.selected,
+  }),
 }));
 
 const SideNavWrapper = ({ children }) => {
   const { user, logoutUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleClick = (path) => {
     navigate(path);
   };
+
+  const isActive = (path) => location.pathname === path;
 
   return(
     <Box sx={{ display: 'flex', height: '100vh' }}>
@@ -40,16 +46,16 @@ const SideNavWrapper = ({ children }) => {
             borderColor: '#383ecc',
           }}
         >
-          <MenuButton color="secondary" onClick={() => handleClick('/harmonogram')}>Harmonogram</MenuButton>
+          <MenuButton color="secondary" onClick={() => handleClick('/harmonogram')} active={isActive('/harmonogram')}>Harmonogram</MenuButton>
           {user=='user' && (<>
-            <MenuButton color="secondary" onClick={() => handleClick('/user-reservations')}>Rezerwacje</MenuButton>
-            <MenuButton color="secondary" onClick={() => handleClick('/user-folder')}>Folder domowy</MenuButton>
-            <MenuButton color="secondary" onClick={() => handleClick('/user-profile')}>Profil</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/user-reservations')} active={isActive('/user-reservations')}>Rezerwacje</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/user-folder')} active={isActive('/user-folder')}>Folder domowy</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/user-profile')} active={isActive('/user-profile')}>Profil</MenuButton>
           </>)}
           {user=='admin' && (<>
-            <MenuButton color="secondary" onClick={() => handleClick('/admin-reservations')}>Rezerwacje</MenuButton>
-            <MenuButton color="secondary" onClick={() => handleClick('/admin-users')}>Użytkownicy</MenuButton>
-            <MenuButton color="secondary" onClick={() => handleClick('/admin-profile')}>Profil</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/admin-reservations')} active={isActive('/admin-reservations')}>Rezerwacje</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/admin-users')} active={isActive('/admin-users')}>Użytkownicy</MenuButton>
+            <MenuButton color="secondary" onClick={() => handleClick('/admin-profile')} active={isActive('/admin-profile')}>Profil</MenuButton>
           </>)}
           <MenuButton color="secondary" onClick={logoutUser}>Wyloguj</MenuButton>
         </Box>
