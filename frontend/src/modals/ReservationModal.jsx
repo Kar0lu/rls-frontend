@@ -23,7 +23,7 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
         if (!response.ok) {
           showSnackbar(`Nastąpił błąd w wyborze rezerwacji. Status: ${response.status}`, 'error');
         }
-        return response.json();
+        return response.status === 204 ? null : response.json();
       })
       .then(() => {
         fetchData();
@@ -62,7 +62,7 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
                       sx={{width:150, marginBottom:2}} color='primary' disabled />
 
                       <TextField  label='Platforma' value={` ${reservation.platform}`}
-                      sx={{width:150}} color='primary' disabled />
+                      sx={{width:150}} color='primary' readOnly />
                 </Box>
 
                 <Box sx={{ width:150, marginBottom:3}}>
