@@ -33,25 +33,33 @@ const UserFolderPage = () => {
         { 
             field: 'created',
             headerName: 'Data utworzenia',
-            width: 200,
+            width: 150,
             valueFormatter: (params) => {
-                const date = dayjs(params)
-                return date.isValid() ? date.format('YYYY-MM-DD HH:mm:ss') : 'Invalid Date';
-              },
+                if (params == undefined){
+                    return 'N/A'
+                } else {
+                    const date = dayjs(params)
+                    return date.isValid() ? date.format('YYYY-MM-DD HH:mm:ss') : 'Invalid Date';
+                }
+            },
         },
         { 
             field: 'modified',
-            headerName: 'Data ostatniej modyfikacji',
-            width: 200,
+            headerName: 'Data modyfikacji',
+            width: 150,
             valueFormatter: (params) => {
-                const date = dayjs(params)
-                return date.isValid() ? date.format('YYYY-MM-DD HH:mm:ss') : 'Invalid Date';
-              },
+                if (params == undefined){
+                    return 'N/A'
+                } else {
+                    const date = dayjs(params)
+                    return date.isValid() ? date.format('YYYY-MM-DD HH:mm:ss') : 'Invalid Date';
+                }
+            },
         },
         { 
             field: 'size',
             headerName: 'Rozmiar',
-            width: 200,
+            width: 100,
             valueFormatter: (params) => {
                 const sizeInBytes = params; // Assuming the value is in bytes
 
@@ -75,7 +83,7 @@ const UserFolderPage = () => {
         {
             field: 'download',
             headerName: 'Pobierz',
-            width: 150,
+            width: 100,
             align: 'center',
             headerAlign: 'center',
             renderCell: (params) => {

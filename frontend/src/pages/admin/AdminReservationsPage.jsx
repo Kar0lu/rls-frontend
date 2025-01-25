@@ -8,12 +8,15 @@ import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'; 
 import AuthContext from '../../context/AuthContext.jsx';
 import { useOverlay } from '../../context/OverlayContext.jsx';
+import { useLocation } from 'react-router-dom';
 
 
 const AdminReservationsPage = () => {
     const[allReservations, setAllReservations] = useState([]);
     const[selectedReservation, setSelectedReservation] = useState([]);
     const [open, setOpen] = useState(false);
+
+    const location = useLocation();
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -72,6 +75,17 @@ const AdminReservationsPage = () => {
 useEffect(() => {
     fetchData();
 }, []);
+
+useEffect(() => {
+  if (location.state?.filterByStudentId) {
+    const filteredReservations = allReservations.filter(
+        (reservation) => reservation.studentID === location.state.filterByStudentId
+    );
+    setAllReservations(filteredReservations);
+    window.history.replaceState({}, document.title);
+  }
+}, [location.state]);
+
       
 const columns = [
     { field: "griddate", headerName: "Data", width: 200 },

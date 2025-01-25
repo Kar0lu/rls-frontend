@@ -43,8 +43,7 @@ export const AuthProvider = ({children}) => {
             if (response.status === 200) {
                 localStorage.setItem('authTokens', JSON.stringify(data));
                 setAuthTokens(data);
-                const isAdmin = jwtDecode(data.access).is_staff;
-                setUser(isAdmin ? 'admin' : 'user');
+                setUser(jwtDecode(data.access).is_staff ? 'admin' : 'user');
                 navigate('/harmonogram');
                 showSnackbar(`Witaj ${jwtDecode(data.access).username}!`, 'success');
             } else {
@@ -82,7 +81,7 @@ export const AuthProvider = ({children}) => {
         const data = await response.json()
         if (response.status === 200) {
             setAuthTokens(data)
-            setUser(jwtDecode(data.access))
+            setUser(jwtDecode(data.access).is_staff ? 'admin' : 'user')
             localStorage.setItem('authTokens',JSON.stringify(data))
         } else {
             logoutUser()
@@ -97,7 +96,7 @@ export const AuthProvider = ({children}) => {
     }
 
     useEffect(()=>{
-        const REFRESH_INTERVAL = 1000 * 60 * 4 // 4 minutes
+        const REFRESH_INTERVAL = 1000 * 60 * 2 // 15 minutes
         let interval = setInterval(()=>{
             if(authTokens){
                 updateToken()
