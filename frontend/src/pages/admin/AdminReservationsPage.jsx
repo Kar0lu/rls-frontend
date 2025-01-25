@@ -42,7 +42,7 @@ const AdminReservationsPage = () => {
                 const user = row.user || {};
                 const devices = row.devices || [];
                 const fullName = user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Brak danych';
-                let platforms = 'Brak urządzenia';
+                let platforms = 'Brak urządzeń';
                 if (devices.length > 0) {
                     platforms = devices.map(device => device.device_type.model).join(', ');
                 }
