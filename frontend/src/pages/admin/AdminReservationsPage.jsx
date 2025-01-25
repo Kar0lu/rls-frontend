@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useState, } from 'react';
 import {Box} from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import ReservationModal from '../../modals/ReservationModal.jsx';
+import ReservationModal from '../../modals/AdminReservationModal.jsx';
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'; 
 import AuthContext from '../../context/AuthContext.jsx';
@@ -42,7 +42,7 @@ const AdminReservationsPage = () => {
                 const user = row.user || {};
                 const devices = row.devices || [];
                 const fullName = user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Brak danych';
-                let platforms = 'Brak urządzeń';
+                let platforms = 'Brak urządzenia';
                 if (devices.length > 0) {
                     platforms = devices.map(device => device.device_type.model).join(', ');
                 }
@@ -77,7 +77,7 @@ const columns = [
     { field: "griddate", headerName: "Data", width: 200 },
     { field: "studentFullName", headerName: "Student", width: 150 },
     { field: "information",
-      headerName: "Informations",
+      headerName: "Informacje",
       type: 'actions',
       cellClassName: 'actions',
       width: 150,
