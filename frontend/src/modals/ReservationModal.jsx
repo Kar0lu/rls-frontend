@@ -21,7 +21,6 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
         if (!response.ok) {
           throw new Error('Failed to delete reservation');
         }
-        console.log(`Reservation with ID ${id} deleted successfully`);
         fetchData();
         onClose();
       })
@@ -35,10 +34,10 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
     return (  
         <GenericModal open={open} onClose={onClose} title={'Rezerwacja'}>
 
-            <TextField  label='Data rezerwacji' value={reservation.date}
-            variant="standard" sx={{width:300}} color='primary' disabled focused />
+              <TextField  label='Data rezerwacji' value={reservation.date}
+              variant="standard" sx={{width:300}} color='primary' disabled focused />
 
-            <Box sx={{display: 'flex', width:300, marginBottom:1}}>
+          <Box sx={{display: 'flex', width:300, marginBottom:1}}>
 
               <TextField  label='Godzina rozpoczęcia' value={reservation.startHour}
               variant="standard" sx={{width:150}} color='primary' disabled focused />
@@ -46,49 +45,49 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
               <TextField  label='Godzina zakończenia' value={reservation.endHour}
               variant="standard" sx={{width:150, marginLeft:3}} color='primary' disabled />
 
-            </Box>
+          </Box>
 
-            <TextField  label='Imię i nazwisko' value={reservation.studentFullName}
-            variant="standard" sx={{width:300, marginBottom:1,}} color='primary' disabled />
+              <TextField  label='Imię i nazwisko' value={reservation.studentFullName}
+              variant="standard" sx={{width:300, marginBottom:1,}} color='primary' disabled />
 
-            <Box sx ={{display:'flex'}}>
+              <Box sx ={{display:'flex'}}>
 
-              <Box sx={{ width:150}}>
-                  <TextField  label='Stanowisko' value={`Stanowisko ${reservation.position}`}
-                  variant="standard" sx={{width:150, marginBottom:2}} color='primary' disabled />
+                <Box sx={{ width:150}}>
+                      <TextField  label='Stanowisko' value={`Stanowisko ${reservation.position}`}
+                      variant="standard" sx={{width:150, marginBottom:2}} color='primary' disabled />
 
-                  <TextField  label='Platforma' value={` ${reservation.platform}`}
-                  variant="standard" sx={{width:150}} color='primary' disabled />
-              </Box>
+                      <TextField  label='Platforma' value={` ${reservation.platform}`}
+                      variant="standard" sx={{width:150}} color='primary' disabled />
+                </Box>
 
-              <Box sx={{ width:150, marginBottom:3}}>
-                  <Button
-                      variant="contained"
-                      color="primary"
-                      fullWidth
-                      sx={{
-                        mt: 1,
-                        marginLeft:3,
-                        width:130
-                      }}
-                      onClick={() => DeleteRecord(reservation.id)}
-                      >
-                        Usuń Rezerwacje
-                  </Button>
-                  <Button
-                      variant="contained"
-                      color="primary"
-                      fullWidth
+                <Box sx={{ width:150, marginBottom:3}}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
                         sx={{
                           mt: 1,
                           marginLeft:3,
                           width:130
                         }}
-                      onClick={handleClick} 
-                      >
-                        Profil
-                  </Button>
-              </Box>
+                        onClick={() => DeleteRecord(reservation.id)}
+                        >
+                          Usuń Rezerwacje
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                          sx={{
+                            mt: 1,
+                            marginLeft:3,
+                            width:130
+                          }}
+                        onClick={handleClick} 
+                        >
+                          Profil
+                    </Button>
+                </Box>
             </Box>
         </GenericModal>
     );
