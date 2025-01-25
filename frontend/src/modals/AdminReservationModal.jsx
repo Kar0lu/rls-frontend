@@ -56,17 +56,28 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
               <TextField  label='Imię i nazwisko' value={reservation.studentFullName}
               sx={{width:300, marginBottom:1,}} color='primary' disabled />
 
+          {reservation.status !== 'FI' && (
+            <>
+              <TextField  label='Adres IP' value={reservation.adress}
+              sx={{width:300, marginBottom:1,}} color='primary' disabled />
+
+              <TextField  label='Hasło' value={reservation.password}
+              sx={{width:300, marginBottom:1,}} color='primary' disabled />
+              </>
+          )}
+
               <Box sx ={{display:'flex'}}>
 
                 <Box sx={{ width:150}}>
                       <TextField  label='Stanowisko' value={`Stanowisko ${reservation.position}`}
                       sx={{width:150, marginBottom:2}} color='primary' disabled />
 
-                      <TextField  label='Platforma' value={` ${reservation.platform}`}
+                      <TextField  label='Urządzenia' value={` ${reservation.platform}`}
                       sx={{width:150}} color='primary' readOnly />
                 </Box>
-
                 <Box sx={{ width:150, marginBottom:3}}>
+                {reservation.status == 'PD' && (
+                    <>
                     <Button
                         variant="contained"
                         color="primary"
@@ -80,6 +91,8 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
                         >
                           Usuń Rezerwacje
                     </Button>
+                    </>
+                )}
                     <Button
                         variant="contained"
                         color="primary"

@@ -58,8 +58,10 @@ const AdminReservationsPage = () => {
                     endHour: row.valid_until,
                     date: row.valid_since,
                     position: row.container.container_id,
-                    platform: platforms,
+                    adress: `${row.container.ip_address}:${row.container.port}`,
+                    password: row.root_password,
                     status: row.status,
+                    platform: platforms,
           };
           });
           setAllReservations(processedReservations);
@@ -87,7 +89,7 @@ useEffect(() => {
 
       
 const columns = [
-    { field: "date", headerName: "Data", width: 200, valueFormatter: (params) => {
+    { field: "date", headerName: "Data", width: 100, valueFormatter: (params) => {
           const date = dayjs(params)
           return date.isValid() ? date.format('YYYY-MM-DD') : 'Invalid Date';
       }},
@@ -102,6 +104,17 @@ const columns = [
     }},
     
     { field: "studentFullName", headerName: "Student", width: 150 },
+    { field: "status", headerName: "Status", width: 120,
+      valueFormatter: (params) => {
+          switch(params){
+              case 'IP':
+                  return 'W realizacji'
+              case 'FI':
+                  return 'Zakończone'
+              case 'PD':
+                  return 'Zaplanowane'
+      }}
+    },
     { field: "information",
       headerName: "Informacje",
       type: 'actions',

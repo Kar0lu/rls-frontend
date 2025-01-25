@@ -48,11 +48,12 @@ const fetchData = () => {
             }
             return {
                 id: row.reservation_id,
-                startHour: dayjs(row.valid_since).format('HH:mm'),
-                endHour: dayjs(row.valid_until).format('HH:mm'),
-                date: dayjs(row.valid_since).format('DD/MM/YYYY'),
-                griddate: `${dayjs(row.valid_since).format('DD/MM/YYYY')} ${dayjs(row.valid_since).format('HH:mm')}-${dayjs(row.valid_until).format('HH:mm')}`,
-                position: row.container,
+                startHour: row.valid_since,
+                endHour: row.valid_until,
+                date: row.valid_since,
+                position: row.container.container_id,
+                adress: `${row.container.ip_address}:${row.container.port}`,
+                password: row.root_password,
                 platform: platforms,
                 status: row.status,
             };
@@ -75,8 +76,32 @@ useEffect(() => {
 }, []);
         
   const columns = [
-      { field: "griddate", headerName: "Data", width: 200 },
-      { field: "platform", headerName: "Platforms", width: 200},
+    { field: "date", headerName: "Data", width: 100, valueFormatter: (params) => {
+          const date = dayjs(params)
+          return date.isValid() ? date.format('YYYY-MM-DD') : 'Invalid Date';
+      }},
+  { field: "startHour", headerName: "Godzina rozpoczęcia", width: 200, valueFormatter: (params) => {
+        const date2 = dayjs(params)
+        return date2.isValid() ? date2.format('HH:mm') : 'Invalid Date';
+    }
+  },
+  { field: "endHour", headerName: "Godzina zakończenia", width: 200, valueFormatter: (params) => {
+        const date = dayjs(params)
+        return date.isValid() ? date.format('HH:mm') : 'Invalid Date';
+    }},
+      { field: "platform", headerName: "Urządzenia", width: 200},
+      { field: "status", headerName: "Status", width: 120,
+        valueFormatter: (params) => {
+            switch(params){
+                case 'IP':
+                    return 'W realizacji'
+                case 'FI':
+                    return 'Zakończone'
+                case 'PD':
+                    return 'Zaplanowane'
+        }}
+      },
+
       { field: "information",
         headerName: "Informacje",
         type: 'actions',

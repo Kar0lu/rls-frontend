@@ -3,6 +3,7 @@ import { Box,TextField, Button} from '@mui/material';
 import GenericModal from './GenericModal';
 import AuthContext from '../context/AuthContext';
 import { useOverlay } from '../context/OverlayContext'
+import dayjs from 'dayjs';
 
 
 const ReservationModal = ({reservation, onClose, open, fetchData}) => {
@@ -39,44 +40,57 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
     return (  
         <GenericModal open={open} onClose={onClose} title={'Rezerwacja'}>
 
-              <TextField  label='Data rezerwacji' value={reservation.date}
+              <TextField  label='Data rezerwacji' value={dayjs(reservation.date).format('DD/MM/YYYY')}
               sx={{width:300}} color='primary' disabled focused />
 
           <Box sx={{display: 'flex', width:300, marginBottom:1}}>
 
-              <TextField  label='Godzina rozpoczęcia' value={reservation.startHour}
+              <TextField  label='Godzina rozpoczęcia' value={dayjs(reservation.startHour).format('HH:mm')}
               sx={{width:150}} color='primary' disabled focused />
 
-              <TextField  label='Godzina zakończenia' value={reservation.endHour}
+              <TextField  label='Godzina zakończenia' value={dayjs(reservation.endHour).format('HH:mm')}
               sx={{width:150, marginLeft:3}} color='primary' disabled />
 
           </Box>
 
-              <TextField  label='Platforma' value={reservation.platform}
+          {reservation.status !== 'FI' && (
+                    <>
+                        <TextField  label='Adres IP' value={reservation.adress}
+                        sx={{width:300, marginBottom:1,}} color='primary' disabled />
+        
+                        <TextField  label='Hasło' value={reservation.password}
+                        sx={{width:300, marginBottom:1,}} color='primary' disabled />
+                        </>
+                )}
+
+
+              <TextField  label='Urządzenia' value={reservation.platform}
               sx={{width:300, marginBottom:1,}} color='primary' readOnly />
 
               <Box sx ={{display:'flex'}}>
 
-                      <TextField  label='Stanowisko' value={`Stanowisko ${reservation.position}`}
-                      sx={{width:150, marginTop:1.5}} color='primary' disabled />
 
-                    <Box sx={{ width:150, marginBottom:3}}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            sx={{
-                                mt: 1,
-                                marginLeft:3,
-                                width:130
-                            }}
-                            onClick={() => DeleteRecord(reservation.id)}
-                            >
-                                Usuń Rezerwacje
-                        </Button>
+                    <Box sx={{ width:300, marginBottom:3}}>
+                        {reservation.status == 'PD' && (
+                            <>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                fullWidth
+                                sx={{
+                                    mt: 1,
+                                    marginLeft:3,
+                                    width:270
+                                }}
+                                onClick={() => DeleteRecord(reservation.id)}
+                                >
+                                    Usuń Rezerwacje
+                            </Button>
+                            </>
+                        )}
 
                     </Box>
-            </Box>
+                </Box>
         </GenericModal>
     );
  
