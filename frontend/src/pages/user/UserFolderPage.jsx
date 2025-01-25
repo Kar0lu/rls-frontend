@@ -219,6 +219,7 @@ const UserFolderPage = () => {
                     },
                 },
                 }}
+                localeText={{ noRowsLabel: "Brak plików" }}
                 sx={{ flexGrow: 1 }}
             />
         </Box>

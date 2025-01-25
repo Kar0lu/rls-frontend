@@ -5,6 +5,7 @@ import { LocalizationProvider, DateCalendar } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pl';
+import { useOverlay } from '../context/OverlayContext';
 
 import AuthContext from '../context/AuthContext';
 
@@ -24,10 +25,11 @@ const HarmonogramPage = () => {
 
   const [calendarData, setCalendarData] = useState(null);
   const [dataGridData, setDataGridData] = useState(null);
+  const { showSnackbar, showLoading, hideLoading } = useOverlay();
 
   const [formValues, setFormValues] = useState({
     selectedDate: dayjs(),
-    platforms_id: [],
+    device_types: [],
   });
 
   const deviceTypesFetch = () => {
@@ -39,13 +41,21 @@ const HarmonogramPage = () => {
             'Authorization': `Bearer ${authTokens.access}`
         }
       })
-      .then((response) => response.json())
+      .then((response) => {
+        if(!response.ok) {
+          throw new Error()
+        }
+        return response.json()
+      })
       .then((data) => {
         const platforms = data.results.map(item => ({
           device_type_id: item.device_type_id,
           model: item.make + ' ' + item.model
         }));
         setPlatformsPicker(platforms);
+      })
+      .catch((error) => {
+        showSnackbar('Błąd podczas pobierania danych', 'error')
       })
     }
   }
@@ -58,7 +68,12 @@ const HarmonogramPage = () => {
         'Authorization': `Bearer ${authTokens.access}`
       }
     })
-    .then((response) => response.json())
+    .then((response) => {
+      if(!response.ok){
+        throw new Error()
+      }
+      return response.json()
+    })
     .then((data) => {
       setHoursLeft(data.hours_left)
       if(data.hours_left != 0 && data.hours_left != null) {
@@ -67,12 +82,19 @@ const HarmonogramPage = () => {
         setDisableSubmit(true)
       }
     })
+    .catch((error) => {
+      showSnackbar('Błąd podczas pobierania danych', 'error')
+    })
   }
 
   const calendarFetch = (newMonth) => {
+    if(formValues.device_types == []) {
+      console.log('calendarFetch has been activated, but device types are empty')
+      return null
+    }
     const queryParams = new URLSearchParams({
       year: formValues.selectedDate.year(),
-      month: newMonth ? newMonth : formValues.selectedDate.month(),
+      month: newMonth ? newMonth : formValues.selectedDate.month()+1,
       device_types: formValues.device_types.join('&device_types='),
     });
 
@@ -83,21 +105,28 @@ const HarmonogramPage = () => {
         'Authorization': `Bearer ${authTokens.access}`
       }
     })
-    .then((response) => response.json())
+    .then((response) => {
+      if(!response.ok){
+        throw new Error()
+      }
+      return response.json()
+    })
     .then((data) => {
-      console.log(data)
+      // console.log(data)
       setCalendarData(data)
+    })
+    .catch((error) => {
+      showSnackbar('Błąd podczas pobierania danych', 'error')
     })
   }
 
   const dataGridFetch = () => {
     const queryParams = new URLSearchParams({
       year: formValues.selectedDate.year(),
-      month: formValues.selectedDate.month(),
+      month: formValues.selectedDate.month()+1,
       day: formValues.selectedDate.day(),
       device_types: formValues.device_types,
     });
-
     fetch(`http://127.0.0.1:8000/api/availability/?${queryParams.toString()}`, {
       method: 'GET',
       headers: {
@@ -105,12 +134,21 @@ const HarmonogramPage = () => {
         'Authorization': `Bearer ${authTokens.access}`
       }
     })
-    .then((response) => response.json())
+    .then((response) => {
+      if(!response.ok){
+        throw new Error()
+      }
+      return response.json()
+    })
     .then((data) => {
       console.log(data)
       setDataGridData(data)
     })
+    .catch((error) => {
+      showSnackbar('Błąd podczas pobierania danych', 'error')
+    })
   }
+
 
   // Loading deviceTypes and hoursLeft on mount
   useEffect(() => {
@@ -139,6 +177,23 @@ const HarmonogramPage = () => {
     }
   }, [dataGridData]);
 
+  useEffect(() => {
+    console.log('platform id has been changed')
+    console.log(formValues)
+    if(formValues.device_types.length > 0){
+      calendarFetch()
+      dataGridFetch()
+    }
+  }, [formValues.device_types]);
+
+  useEffect(() => {
+    console.log('selected date has been changed')
+    console.log(formValues)
+    if(formValues.device_types.length > 0){
+      dataGridFetch()
+    }
+  }, [formValues.selectedDate]);
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pl">
     <Box sx={{ display: "flex", gap: 2 }}>
@@ -151,14 +206,12 @@ const HarmonogramPage = () => {
             if (value) {
               setFormValues((prevValues) => ({
                   ...prevValues,
-                  platforms_id: value.map((item) => item.device_type_id)
+                  device_types: value.map((item) => item.device_type_id)
               }));
-              calendarFetch()
-              dataGridFetch()
             }
           }}
           renderInput={(params) => (
-            <TextField {...params} label="Platforma" />
+            <TextField {...params} label="Urządzenia" />
           )}
           renderOption={(props, option) => (
             <li {...props} key={option.device_type_id}>
@@ -179,6 +232,14 @@ const HarmonogramPage = () => {
             },
           }}
           sx={{ flexGrow: 1 }}
+          localeText={{ 
+            noRowsLabel: 
+              formValues.selectedDate === null 
+              ? 'Nie wybrano daty' 
+              : (formValues.device_types && formValues.device_types.length === 0 
+                ? 'Nie wybrano urządzeń' 
+                : 'Brak danych')
+          }}
         />
       </Box>
 
@@ -199,7 +260,6 @@ const HarmonogramPage = () => {
               ...prevValues,
               selectedDate: newDate,
             }))
-            dataGridFetch()
           }}
         />
         
