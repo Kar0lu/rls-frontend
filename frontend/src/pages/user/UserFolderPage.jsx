@@ -177,24 +177,38 @@ const UserFolderPage = () => {
         })
     }
 
-    // TODO: implement when API is ready
-    // const fileDownloadFetch = async (filename) => {
-    //     fetch("http://127.0.0.1:8000/api/user/TODO", {
-    //         method: 'GET',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'Authorization': `Bearer ${authTokens.access}`
-    //         }
-    //     })
-    //     .then((response) => response.json())
-    //     .then((data) => {
-    //       console.log(data)
-    //     })
-    // }
-
     const fileDownloadFetch = (folder, name) => {
-        showSnackbar(`Rozpoczęto pobieranie ${name}`, 'success')
-        // console.log(folder != '/' ? folder+'/'+name : folder+name)
+        showLoading()
+
+        const path = (folder + '/' + name).replace(/^\/+/, '');
+        fetch(`http://127.0.0.1:8000/api/user/file/?filepath=${path}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authTokens.access}`,
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error();
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            showSnackbar(`Rozpoczęto pobieranie ${name}`, 'success')
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = name;
+            link.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            showSnackbar('Nie znaleziono pliku', 'error')
+        })
+        .finally(
+            hideLoading()
+        );
     }
     
     useEffect(() => {
