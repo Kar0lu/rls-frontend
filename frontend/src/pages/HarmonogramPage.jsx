@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Box, Button, Autocomplete, Chip, TextField } from '@mui/material';
+import { Box, Button, Autocomplete, Chip, TextField, Checkbox, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { LocalizationProvider, DateCalendar } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -19,20 +19,25 @@ const HarmonogramPage = () => {
   dayjs.locale('pl');
 
   const { user, authTokens } = useContext(AuthContext);
-  const [platformsPicker, setPlatformsPicker] = useState([]);
-  const [disableSubmit, setDisableSubmit] = useState(true);
+  const { showSnackbar, showLoading, hideLoading } = useOverlay();
+
   const [hoursLeft, setHoursLeft] = useState(null);
+  const [platformsPicker, setPlatformsPicker] = useState([]);
+
 
   const [calendarData, setCalendarData] = useState(null);
   const [dataGridData, setDataGridData] = useState(null);
-  const { showSnackbar, showLoading, hideLoading } = useOverlay();
+  const [availabilityData, setAvailabilityData] = useState(null);
+
+  const [checkedState, setCheckedState] = useState({});
+  const [disableSubmit, setDisableSubmit] = useState(true);
 
   const [formValues, setFormValues] = useState({
     selectedDate: dayjs(),
     device_types: [],
   });
 
-  const deviceTypesFetch = () => {
+  const fetchDeviceTypes = () => {
     if(authTokens) {
       fetch('http://127.0.0.1:8000/api/deviceTypes/', {
         method: 'GET',
@@ -60,7 +65,7 @@ const HarmonogramPage = () => {
     }
   }
 
-  const hoursLeftFetch = () => {
+  const fetchHoursLeft = () => {
     fetch('http://127.0.0.1:8000/api/user/hoursLeft/', {
       method: 'GET',
       headers: {
@@ -87,18 +92,24 @@ const HarmonogramPage = () => {
     })
   }
 
-  const calendarFetch = (newMonth) => {
-    if(formValues.device_types == []) {
-      console.log('calendarFetch has been activated, but device types are empty')
+  const fetchCalendar = (newMonth) => {
+    if(formValues.device_types.length == 0) {
+      // console.log('fetchCalendar has been activated, but device types are empty')
       return null
     }
     const queryParams = new URLSearchParams({
       year: formValues.selectedDate.year(),
-      month: newMonth ? newMonth : formValues.selectedDate.month()+1,
-      device_types: formValues.device_types.join('&device_types='),
+      month: newMonth ? newMonth.month()+1 : formValues.selectedDate.month() + 1,
     });
+  
+    formValues.device_types.forEach((deviceType) => {
+      queryParams.append('device_types', deviceType);
+    });
+  
+    const queryString = queryParams.toString();
 
-    fetch(`http://127.0.0.1:8000/api/availability/?${queryParams.toString()}`, {
+    // console.log('fetching', `http://127.0.0.1:8000/api/availability/?${queryString}`)
+    fetch(`http://127.0.0.1:8000/api/availability/?${queryString}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -112,22 +123,29 @@ const HarmonogramPage = () => {
       return response.json()
     })
     .then((data) => {
-      // console.log(data)
-      setCalendarData(data)
+      setCalendarData(Object.values(data)[0])
+      // console.log('calendarData:', Object.values(data)[0])
     })
     .catch((error) => {
       showSnackbar('Błąd podczas pobierania danych', 'error')
     })
   }
 
-  const dataGridFetch = () => {
+  const fetchDataGrid = () => {
     const queryParams = new URLSearchParams({
       year: formValues.selectedDate.year(),
-      month: formValues.selectedDate.month()+1,
-      day: formValues.selectedDate.day(),
-      device_types: formValues.device_types,
+      month: formValues.selectedDate.month() + 1,
+      day: formValues.selectedDate.date()
     });
-    fetch(`http://127.0.0.1:8000/api/availability/?${queryParams.toString()}`, {
+  
+    formValues.device_types.forEach((deviceType) => {
+      queryParams.append('device_types', deviceType);
+    });
+  
+    const queryString = queryParams.toString();
+
+    // console.log('fetching', `http://127.0.0.1:8000/api/availability/?${queryString}`)
+    fetch(`http://127.0.0.1:8000/api/availability/?${queryString}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -141,62 +159,107 @@ const HarmonogramPage = () => {
       return response.json()
     })
     .then((data) => {
-      console.log(data)
-      setDataGridData(data)
+      setAvailabilityData(Object.values(data)[0])
+
+      const fdata = Object.values(data)[0]
+      const hours = Array.from({ length: 24 }, (_, index) => `${index}:00`);
+      // const devTypes = [...new Set(fdata.devices.map(item => item.dev_type))]
+
+      const rows = hours.map((hour, hourIndex) => {
+        // Create a base row with the hour
+        const row = { id: hourIndex, hour };
+
+        // Add availability for each container
+        fdata.containers.forEach((container, containerIndex) => {
+          row[`ct_${container.ct_id}`] = container.availability[hourIndex];
+        });
+
+        // Add availability for each device
+        fdata.devices.forEach((device, deviceIndex) => {
+          row[`${device.dev_id}`] = device.availability[hourIndex];
+        });
+
+        return row;
+      });
+
+      setDataGridData(rows)
     })
     .catch((error) => {
       showSnackbar('Błąd podczas pobierania danych', 'error')
     })
   }
 
-
-  // Loading deviceTypes and hoursLeft on mount
   useEffect(() => {
-    deviceTypesFetch()
-    hoursLeftFetch()
+    fetchDeviceTypes()
+    fetchHoursLeft()
   }, []);
 
-  // Setting up columns when dataGridData is changed
-  // TODO: adjust when API is ready
   const [columns, setColumns] = useState([])
   useEffect(() => {
-    if(dataGridData) {
+    if(availabilityData) {
       const staticColumns = {
         field: 'hour',
         headerName: 'Godzina',
         width: 100,
       };
   
-      const dynamicColumns = Object.keys(dataGridData.containers).map(key => ({
-        field: key,
-        headerName: 'Stanowisko ' + key,
+      const dynamicColumns = Object.keys(availabilityData.containers).map(key => ({
+        field: `ct_${availabilityData.containers[key].ct_id}`,
+        headerName: 'Stanowisko ' + availabilityData.containers[key].ct_id,
         width: 150,
+        renderCell: (params) => {
+          // console.log(params.row)
+          const hourIndex = params.row.id
+          const hasContainer = params.value
+
+          const allDeviceTypesAvailable = formValues.device_types.every(deviceTypeId => {
+            return availabilityData.devices.some(device => 
+              device.dev_type === deviceTypeId && device.availability[hourIndex]
+            );
+          });
+
+          const isEnabled = hasContainer && allDeviceTypesAvailable;
+
+          return (<Checkbox disabled={!isEnabled}/>)
+        }
       }));
   
       setColumns([staticColumns, ...dynamicColumns]);
     }
-  }, [dataGridData]);
+  }, [availabilityData]);
 
   useEffect(() => {
-    console.log('platform id has been changed')
-    console.log(formValues)
+    // console.log('device types has been changed to', formValues.device_types)
+
     if(formValues.device_types.length > 0){
-      calendarFetch()
-      dataGridFetch()
+      fetchCalendar()
+      fetchDataGrid()
+    } else {
+      setAvailabilityData(null)
+      setDataGridData(null)
+      setColumns([])
     }
   }, [formValues.device_types]);
 
   useEffect(() => {
-    console.log('selected date has been changed')
-    console.log(formValues)
+    // console.log('selected date has been changed to', formValues.selectedDate.format('DD/MM/YYYY'))
+
     if(formValues.device_types.length > 0){
-      dataGridFetch()
+      fetchDataGrid()
     }
   }, [formValues.selectedDate]);
 
+  useEffect(() => {
+    // console.log(dataGridData)
+  }, [dataGridData]);
+  useEffect(() => {
+    // console.log(availabilityData)
+  }, [availabilityData]);
+
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pl">
-    <Box sx={{ display: "flex", gap: 2 }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 2 }}>
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
         <Autocomplete
           multiple
@@ -249,10 +312,9 @@ const HarmonogramPage = () => {
           minDate={dayjs()}
           defaultValue={dayjs()}
           onMonthChange={(newMonth) => {
-            calendarFetch(newMonth)
+            fetchCalendar(newMonth)
           }}
           shouldDisableDate={(date) => {
-            // TODO: adjust calendarData for this format
             // return calendarData.some((d) => d.isSame(date, "day"))
           }}
           onChange={(newDate) => {
@@ -263,7 +325,7 @@ const HarmonogramPage = () => {
           }}
         />
         
-        <Button variant="contained" onClick={handleOpen} disabled={disableSubmit}>
+        <Button variant="contained" onClick={handleOpen} disabled={disableSubmit || formValues.device_types.length == 0}>
           Zarezerwuj
         </Button>
       </Box>
