@@ -44,7 +44,7 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
         <TextField label='Zakończenie' value={dayjs(reservation.endHour).format('HH:mm')} disabled />
       </Box>
 
-      <TextField  label='Imię i nazwisko' value={reservation.studentFullName} disabled sx={{textAlign: 'center'}}/>
+      <TextField  label='Imię i nazwisko' value={reservation.studentFullName} disabled />
 
       <Box sx={{display: 'flex', gap: 2}}>
         {reservation.status !== 'FI' && (
