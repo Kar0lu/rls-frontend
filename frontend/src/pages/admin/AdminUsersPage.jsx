@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import AuthContext from '../../context/AuthContext';
 import InfoIcon from '@mui/icons-material/Info';
 import DataGridButton from '../../components/DataGridButton';
 import { Box } from '@mui/material';
 import { useOverlay } from '../../context/OverlayContext';
-import UserModal from '../../modals/UserModal';
+import AdminUsersModal from '../../modals/AdminUsersModal';
 
 const AdminUsersPage = () => {
     const columns = [
         { field: 'first_name', headerName: 'Imię', width: 150},
         { field: 'last_name', headerName: 'Nazwisko', width: 150},
-        { field: 'username', headerName: 'Nazwa użytkownika', width: 200},
+        { field: 'username', headerName: 'Nazwa użytkownika', width: 150},
         { field: 'email', headerName: 'E-mail', width: 150},
         {
             field: 'informations',
@@ -105,9 +105,18 @@ const AdminUsersPage = () => {
                 columns={columns}
                 disableRowSelectionOnClick
                 localeText={{ noRowsLabel: "Brak użytkowników" }}
+                slots={{ toolbar: GridToolbar }}
+                slotProps={{
+                    toolbar: {
+                    sx: {
+                        "& .MuiButton-root": {
+                        color: "#fff",
+                    }},
+                    },
+                }}
             />
         </Box>
-        <UserModal open={modalOpen} onClose={handleCloseModal} row={activeUser} removeUserFetch={removeUserFetch}/>
+        <AdminUsersModal open={modalOpen} onClose={handleCloseModal} row={activeUser} removeUserFetch={removeUserFetch}/>
     </>)
 }
 

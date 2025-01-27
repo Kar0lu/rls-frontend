@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useOverlay } from '../context/OverlayContext'
 import AuthContext from '../context/AuthContext'
 
-const UserModal = ({open, onClose, row, removeUserFetch }) => {
+const AdminUsersModal = ({open, onClose, row, removeUserFetch }) => {
 
     const navigate = useNavigate();
     const { showSnackbar} = useOverlay();
@@ -57,22 +57,22 @@ const UserModal = ({open, onClose, row, removeUserFetch }) => {
     }
 
     return(
-        <GenericModal open={open} onClose={onClose} title={'Student'}>
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 2 }}>
-                <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField label="ID" value={row?.id} disabled />
-                    <TextField label="Imię i nazwisko" value={row?.first_name + ' ' + row?.last_name} disabled />
-                    <TextField label="Nazwa użytkownika" value={row?.username} disabled />
-                    <TextField label="Nowe hasło" value={newPassword} onChange={handlePasswordChange} type='password' />
-                </Box>
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, justifyContent: 'space-between'}}>
-                    <Button variant='contained' size='small' onClick={studentReservations}>Rezerwacje studenta</Button>
-                    <Button variant='contained' size='small' onClick={removeUserFetch}>Usuń studenta</Button>
-                    <Button variant='contained' size='small' onClick={newPasswordFetch}>Zmień hasło</Button>
-                </Box>
+        <GenericModal open={open} onClose={onClose} title={'Student'} width={500}>
+            <Box sx={{ flex: 2, display: 'flex', gap: 2 }}>
+                <TextField label="ID" value={row?.id} disabled sx={{flex: 1}}/>
+                <TextField label="Imię i nazwisko" value={row?.first_name + ' ' + row?.last_name} disabled sx={{flex: 3}}/>
+                <TextField label="Nazwa użytkownika" value={row?.username} disabled sx={{flex: 3}}/>
+            </Box>
+
+            <TextField label="Nowe hasło" value={newPassword} onChange={handlePasswordChange} type='password' />
+            <Button variant='contained' size='small' onClick={newPasswordFetch}>Zmień hasło</Button>
+
+            <Box sx={{ flex: 1, display: 'flex', gap: 2, justifyContent: 'space-between'}}>
+                <Button variant='contained' size='small' onClick={removeUserFetch} color={'error'}>Usuń studenta</Button>   
+                <Button variant='contained' size='small' onClick={studentReservations}>Rezerwacje studenta</Button>
             </Box>
         </GenericModal>
     )
 }
 
-export default UserModal
+export default AdminUsersModal

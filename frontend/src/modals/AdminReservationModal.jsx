@@ -2,14 +2,13 @@ import React, { useContext} from 'react';
 import { Box,TextField, Button} from '@mui/material';
 import GenericModal from './GenericModal';
 import AuthContext from '../context/AuthContext';
-import dayjs from 'dayjs';
 import { useOverlay } from '../context/OverlayContext'
-
+import dayjs from 'dayjs';
 
 const ReservationModal = ({reservation, onClose, open, fetchData}) => {
 
   const { showSnackbar} = useOverlay();
-  const {authTokens} = useContext(AuthContext);
+  const { authTokens } = useContext(AuthContext);
   const handleClick = () => {};
 
   const DeleteRecord = (id) => {
@@ -20,97 +19,58 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
         'Authorization': `Bearer ${authTokens.access}`,
       },
     })
-      .then((response) => {
-        if (!response.ok) {
-          showSnackbar(`Nastąpił błąd w wyborze rezerwacji. Status: ${response.status}`, 'error');
-        }
-        return response.status === 204 ? null : response.json();
-      })
-      .then(() => {
-        fetchData();
-        onClose(); 
-      })
-      .catch((error) => {
-        showSnackbar('Nieoczekiwany błąd', 'error');
-      });
+    .then((response) => {
+      if (!response.ok) {
+        showSnackbar(`Nastąpił błąd w wyborze rezerwacji. Status: ${response.status}`, 'error');
+      }
+      return response.status === 204 ? null : response.json();
+    })
+    .then(() => {
+      fetchData();
+      onClose(); 
+    })
+    .catch((error) => {
+      showSnackbar('Nieoczekiwany błąd', 'error');
+    });
 
   };
 
+  return (  
+    <GenericModal open={open} onClose={onClose} title={'Rezerwacja'} width={500}>
 
-    return (  
-        <GenericModal open={open} onClose={onClose} title={'Rezerwacja'}>
+      <Box sx={{display: 'flex', gap: 2}}>
+        <TextField label='Data rezerwacji' value={dayjs(reservation.date).format('DD/MM/YYYY')} disabled />
+        <TextField label='Rozpoczęcie' value={dayjs(reservation.startHour).format('HH:mm')} disabled />
+        <TextField label='Zakończenie' value={dayjs(reservation.endHour).format('HH:mm')} disabled />
+      </Box>
 
-              <TextField  label='Data rezerwacji' value={dayjs(reservation.date).format('DD/MM/YYYY')}
-              sx={{width:300}} color='primary' disabled focused />
+      <TextField  label='Imię i nazwisko' value={reservation.studentFullName} disabled sx={{textAlign: 'center'}}/>
 
-          <Box sx={{display: 'flex', width:300, marginBottom:1}}>
+      <Box sx={{display: 'flex', gap: 2}}>
+        {reservation.status !== 'FI' && (
+          <>
+            <TextField label='Adres IP' value={reservation.adress} disabled />
+            <TextField label='Hasło' value={reservation.password} disabled />
+          </>
+        )}
+        <TextField label='Stanowisko' value={`Stanowisko ${reservation.position}`} disabled />
+      </Box>
 
-              <TextField  label='Godzina rozpoczęcia' value={dayjs(reservation.startHour).format('HH:mm')}
-              sx={{width:150}} color='primary' disabled focused />
+      <TextField label='Urządzenia' value={`${reservation.platform}`} readOnly />
 
-              <TextField  label='Godzina zakończenia' value={dayjs(reservation.endHour).format('HH:mm')}
-              sx={{width:150, marginLeft:3}} color='primary' disabled />
+      <Box sx={{display: 'flex', gap: 2, justifyContent: 'space-between'}}>
+        {reservation.status == 'PD' && (
+          <Button variant="contained" onClick={() => DeleteRecord(reservation.id)} color='error'>
+            Usuń Rezerwacje
+          </Button>
+        )}
+        <Button variant="contained" onClick={handleClick}>
+          Profil Użytkownika
+        </Button>
+      </Box>
 
-          </Box>
-
-              <TextField  label='Imię i nazwisko' value={reservation.studentFullName}
-              sx={{width:300, marginBottom:1,}} color='primary' disabled />
-
-          {reservation.status !== 'FI' && (
-            <>
-              <TextField  label='Adres IP' value={reservation.adress}
-              sx={{width:300, marginBottom:1,}} color='primary' disabled />
-
-              <TextField  label='Hasło' value={reservation.password}
-              sx={{width:300, marginBottom:1,}} color='primary' disabled />
-              </>
-          )}
-
-              <Box sx ={{display:'flex'}}>
-
-                <Box sx={{ width:150}}>
-                      <TextField  label='Stanowisko' value={`Stanowisko ${reservation.position}`}
-                      sx={{width:150, marginBottom:2}} color='primary' disabled />
-
-                      <TextField  label='Urządzenia' value={` ${reservation.platform}`}
-                      sx={{width:150}} color='primary' readOnly />
-                </Box>
-                <Box sx={{ width:150, marginBottom:3}}>
-                {reservation.status == 'PD' && (
-                    <>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        sx={{
-                          mt: 1,
-                          marginLeft:3,
-                          width:130
-                        }}
-                        onClick={() => DeleteRecord(reservation.id)}
-                        >
-                          Usuń Rezerwacje
-                    </Button>
-                    </>
-                )}
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                          sx={{
-                            mt: 1,
-                            marginLeft:3,
-                            width:130
-                          }}
-                        onClick={handleClick} 
-                        >
-                          Profil
-                    </Button>
-                </Box>
-            </Box>
-        </GenericModal>
-    );
- 
+    </GenericModal>
+  );
 };
 
 export default ReservationModal

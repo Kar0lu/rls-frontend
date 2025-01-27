@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Modal, Typography } from '@mui/material';
 
-const GenericModal = ({ open, onClose, title, children }) => {
+const GenericModal = ({ open, onClose, title, width=400, children }) => {
     return (
         <Modal open={open} onClose={onClose} aria-labelledby="modal-title" aria-describedby="modal-description">
             <Box
@@ -10,7 +10,7 @@ const GenericModal = ({ open, onClose, title, children }) => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 400,
+                    width: width,
                     bgcolor: 'background.paper',
                     boxShadow: 24,
                     p: 4,

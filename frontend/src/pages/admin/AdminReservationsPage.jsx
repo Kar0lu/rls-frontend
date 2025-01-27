@@ -1,4 +1,4 @@
-import { DataGrid, GridToolbar,   GridActionsCellItem,} from '@mui/x-data-grid';
+import { DataGrid, GridToolbar,   GridActionsCellItem, renderActionsCell,} from '@mui/x-data-grid';
 import React, {useContext, useEffect, useState, } from 'react';
 import {Box} from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
@@ -9,6 +9,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import AuthContext from '../../context/AuthContext.jsx';
 import { useOverlay } from '../../context/OverlayContext.jsx';
 import { useLocation } from 'react-router-dom';
+import DataGridButton from '../../components/DataGridButton.jsx';
 
 
 const AdminReservationsPage = () => {
@@ -93,12 +94,12 @@ const columns = [
           const date = dayjs(params)
           return date.isValid() ? date.format('YYYY-MM-DD') : 'Invalid Date';
       }},
-  { field: "startHour", headerName: "Godzina rozpoczęcia", width: 200, valueFormatter: (params) => {
+  { field: "startHour", headerName: "Rozpoczęcie", width: 100, valueFormatter: (params) => {
         const date2 = dayjs(params)
         return date2.isValid() ? date2.format('HH:mm') : 'Invalid Date';
     }
   },
-  { field: "endHour", headerName: "Godzina zakończenia", width: 200, valueFormatter: (params) => {
+  { field: "endHour", headerName: "Zakończenie", width: 100, valueFormatter: (params) => {
         const date = dayjs(params)
         return date.isValid() ? date.format('HH:mm') : 'Invalid Date';
     }},
@@ -117,53 +118,54 @@ const columns = [
     },
     { field: "information",
       headerName: "Informacje",
-      type: 'actions',
-      cellClassName: 'actions',
       width: 150,
-      getActions: ({ id }) => {
-        const student = allReservations.find((student)=> student.id === id)
-        return [
-          <GridActionsCellItem
-            icon={<InfoIcon />}
-            onClick={()=>
-                {setSelectedReservation(student); 
-                handleOpen();
-            }} 
-            label="Save"
-            color="primary"
-          />,
-        ];
+      renderCell: (params) => {
+        return(
+          <DataGridButton onClick={() => {
+            setSelectedReservation(params.row);
+            handleOpen();
+          }
+          }>
+            <InfoIcon />
+          </DataGridButton>
+        )
       },
     },
   ];
-    return(
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <Box>
-                  <DataGrid
-                    rows={allReservations}
-                    components={{ Toolbar: GridToolbar }}
-                    columns={columns}
-                    pageSizeOptions={[10,15]}
-                    initialState={{
-                        pagination: {
-                          paginationModel: {
-                            pageSize: 10,
-                          },
-                        },
-                      }}
-                    disableRowSelectionOnClick
-                  />
-                  {selectedReservation && (
-                  <ReservationModal
-                    open={open}
-                    onClose={handleClose}
-                    fetchData = {fetchData}
-                    reservation={selectedReservation}
-                  />
-                )}
-              </Box>
-          </LocalizationProvider>
 
-)
+  return(
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DataGrid
+        rows={allReservations}
+        columns={columns}
+        pageSizeOptions={[10,15]}
+        initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 10,
+              },
+            },
+        }}
+        slots={{ toolbar: GridToolbar }}
+        slotProps={{
+          toolbar: {
+            sx: {
+              "& .MuiButton-root": {
+              color: "#fff",
+            }},
+          },
+        }}
+        disableRowSelectionOnClick
+      />
+      {selectedReservation && (
+        <ReservationModal
+          open={open}
+          onClose={handleClose}
+          fetchData = {fetchData}
+          reservation={selectedReservation}
+        />
+      )}
+    </LocalizationProvider>
+  )
 };
 export default AdminReservationsPage
