@@ -1,20 +1,55 @@
-import React, {useState} from 'react'
+import React, {useState, useContext} from 'react'
 import { Box, TextField, Button } from '@mui/material'
 import GenericModal from './GenericModal'
 import { useNavigate } from 'react-router-dom'
+import { useOverlay } from '../context/OverlayContext'
+import AuthContext from '../context/AuthContext'
 
 const UserModal = ({open, onClose, row, removeUserFetch }) => {
 
-    const [newPassword, setNewPassword] = useState('')
     const navigate = useNavigate();
+    const { showSnackbar} = useOverlay();
+    const {authTokens} = useContext(AuthContext);
 
+    const [newPassword, setNewPassword] = useState('')
+    
     const handlePasswordChange = (event) => {
         setNewPassword(event.target.value);
     };
 
-    // TODO: implement when API is ready
     const newPasswordFetch = () => {
-        console.log('change password')
+        if(newPassword == '') {
+            showSnackbar(`Hasło nie może być puste`, 'warning');
+            return null
+        }
+        if(newPassword.length < 8) {
+            showSnackbar(`Hasło musi zawierać conajmniej 8 znaków`, 'warning');
+            return null
+        }
+        fetch(`http://127.0.0.1:8000/api/changePassword/${row?.id}/`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authTokens.access}`,
+            },
+            body: JSON.stringify({
+                "new_password": newPassword
+            })
+                
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error()
+              }
+              return response.json();
+            })
+            .then(() => {
+                showSnackbar(`Pomyślnie zmieniono nazwę użytkownika ${row.username}`, 'success');
+                setNewPassword('')
+            })
+            .catch(() => {
+              showSnackbar('Wystąpił nieoczekiwany bład', 'error');
+            });
     }
 
     const studentReservations = () => {
