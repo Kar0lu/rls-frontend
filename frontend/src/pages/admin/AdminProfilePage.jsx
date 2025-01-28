@@ -148,11 +148,11 @@ const AdminProfilePage = () => {
                 <TextField label="Status" value={userData.is_staff} disabled />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-                <TextField label="Stare hasło" fullWidth value={oldPassword} onChange={handleOldPasswordChange} type='password'/>
-                <TextField label="Nowe hasło" fullWidth value={newPassword} onChange={handleNewPasswordChange} type='password'/>
+                <TextField label="Stare hasło" value={oldPassword} onChange={handleOldPasswordChange} type='password'/>
+                <TextField label="Nowe hasło" value={newPassword} onChange={handleNewPasswordChange} type='password'/>
             </Box>
-            <Box sx={{flex: 1, display: 'flex', alignItems: 'stretch'}}>
-                <Button variant='contained' fullWidth onClick={newPasswordFetch}>Zmień hasło</Button>
+            <Box sx={{display: 'flex'}}>
+                <Button variant='contained' onClick={newPasswordFetch}>Zmień hasło</Button>
             </Box>
         </Box>
     );
