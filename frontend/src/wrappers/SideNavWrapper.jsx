@@ -29,7 +29,7 @@ const SideNavWrapper = ({ children }) => {
       <Box
         sx={{
           height: '100vh',
-          width: '250px',
+          minWidth: '150px',
           textAlign: 'left',
           backgroundColor: 'background.paper',
         }}
@@ -61,7 +61,7 @@ const SideNavWrapper = ({ children }) => {
         </Box>
       </Box>
 
-      <Box sx={{ pt: 2, pl: 2 }}>
+      <Box sx={{ pt: 2, pl: 2, pr:2, overflow: 'auto', flexGrow: 1 }}>
         {children}
       </Box>
     </Box>
