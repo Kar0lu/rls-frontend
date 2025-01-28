@@ -98,8 +98,8 @@ const AdminUsersPage = () => {
         )
     }
 
-    return(<>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    return(
+        <Box>
             <DataGrid
                 rows={studentsList}
                 columns={columns}
@@ -115,9 +115,9 @@ const AdminUsersPage = () => {
                     },
                 }}
             />
+            <AdminUsersModal open={modalOpen} onClose={handleCloseModal} row={activeUser} removeUserFetch={removeUserFetch}/>
         </Box>
-        <AdminUsersModal open={modalOpen} onClose={handleCloseModal} row={activeUser} removeUserFetch={removeUserFetch}/>
-    </>)
+    )
 }
 
 export default AdminUsersPage

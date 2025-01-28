@@ -37,19 +37,19 @@ const AdminUsersModal = ({open, onClose, row, removeUserFetch }) => {
             })
                 
           })
-            .then((response) => {
-              if (!response.ok) {
+        .then((response) => {
+            if (!response.ok) {
                 throw new Error()
-              }
-              return response.json();
-            })
-            .then(() => {
-                showSnackbar(`Pomyślnie zmieniono nazwę użytkownika ${row.username}`, 'success');
-                setNewPassword('')
-            })
-            .catch(() => {
-              showSnackbar('Wystąpił nieoczekiwany bład', 'error');
-            });
+            }
+            return response.json();
+        })
+        .then(() => {
+            showSnackbar(`Pomyślnie zmieniono hasło użytkownika ${row.username}`, 'success');
+            setNewPassword('')
+        })
+        .catch(() => {
+            showSnackbar('Wystąpił nieoczekiwany bład', 'error');
+        });
     }
 
     const studentReservations = () => {

@@ -13,127 +13,124 @@ import DataGridButton from '../../components/DataGridButton.jsx';
 
 
 const AdminReservationsPage = () => {
-    const[allReservations, setAllReservations] = useState([]);
-    const[selectedReservation, setSelectedReservation] = useState([]);
-    const [open, setOpen] = useState(false);
+  const[allReservations, setAllReservations] = useState([]);
+  const[selectedReservation, setSelectedReservation] = useState([]);
+  const [open, setOpen] = useState(false);
 
-    const location = useLocation();
+  const location = useLocation();
 
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-    const { authTokens } = useContext(AuthContext);
-    const { showSnackbar, showLoading, hideLoading } = useOverlay();
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const { authTokens } = useContext(AuthContext);
+  const { showSnackbar, showLoading, hideLoading } = useOverlay();
 
-    const fetchData = () => {
-      showLoading();
-      fetch('http://127.0.0.1:8000/api/reservations/?extra=true', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authTokens.access}`,
-        },
-      })
-        .then((response) => {
-            if (!response.ok) {
-                showSnackbar('Nastąpił problem z połączeniem z bazą danych', 'error');
-                hideLoading();
-                return Promise.reject('Error with response');
-            }
-            return response.json();
-        })
-        .then((reservationsData) => {
-          const processedReservations = reservationsData.results.map((row) => {
-                const user = row.user || {};
-                const devices = row.devices || [];
-                const fullName = user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Brak danych';
-                let platforms = 'Brak urządzenia';
-                if (devices.length > 0) {
-                    platforms = devices.map(device => device.device_type.model).join(', ');
-                }
-                  
-                return {
-                    id: row.reservation_id,
-                    studentID: user.id,
-                    studentFullName: fullName,
-                    startHour: row.valid_since,
-                    endHour: row.valid_until,
-                    date: row.valid_since,
-                    position: row.container.container_id,
-                    adress: `${row.container.ip_address}:${row.container.port}`,
-                    password: row.root_password,
-                    status: row.status,
-                    platform: platforms,
-          };
-          });
-          setAllReservations(processedReservations);
-          hideLoading();
-        })
-        .catch((error) => {
-          showSnackbar('Wystąpił nieoczekiwany błąd', 'error');
-          hideLoading();
-        });
-    };
+  const fetchData = () => {
+    showLoading();
+    fetch('http://127.0.0.1:8000/api/reservations/?extra=true', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authTokens.access}`,
+      },
+    })
+    .then((response) => {
+      if (!response.ok) {
+        showSnackbar('Nastąpił problem z połączeniem z bazą danych', 'error');
+        hideLoading();
+        return Promise.reject('Error with response');
+      }
+      return response.json();
+    })
+    .then((reservationsData) => {
+      const processedReservations = reservationsData.results.map((row) => {
+        const user = row.user || {};
+        const devices = row.devices || [];
+        const fullName = user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Brak danych';
+        let platforms = 'Brak urządzenia';
+        if (devices.length > 0) {
+          platforms = devices.map(device => device.device_type.model).join(', ');
+        }
+              
+        return {
+          id: row.reservation_id,
+          studentID: user.id,
+          studentFullName: fullName,
+          startHour: row.valid_since,
+          endHour: row.valid_until,
+          date: row.valid_since,
+          position: row.container.container_id,
+          adress: `${row.container.ip_address}:${row.container.port}`,
+          password: row.root_password,
+          status: row.status,
+          platform: platforms,
+        };
+      });
+      setAllReservations(processedReservations);
+      hideLoading();
+    })
+    .catch((error) => {
+      showSnackbar('Wystąpił nieoczekiwany błąd', 'error');
+      hideLoading();
+    });
+  };
 
-useEffect(() => {
+  useEffect(() => {
     fetchData();
-}, []);
+  }, []);
 
-useEffect(() => {
+  useEffect(() => {
   if (location.state?.filterByStudentId) {
     const filteredReservations = allReservations.filter(
-        (reservation) => reservation.studentID === location.state.filterByStudentId
+      (reservation) => reservation.studentID === location.state.filterByStudentId
     );
     setAllReservations(filteredReservations);
     window.history.replaceState({}, document.title);
-  }
-}, [location.state]);
-
+  }}, [location.state]);
       
 const columns = [
-    { field: "date", headerName: "Data", width: 100, valueFormatter: (params) => {
-          const date = dayjs(params)
-          return date.isValid() ? date.format('YYYY-MM-DD') : 'Invalid Date';
-      }},
+  { field: "date", headerName: "Data", width: 100, valueFormatter: (params) => {
+    const date = dayjs(params)
+    return date.isValid() ? date.format('YYYY-MM-DD') : 'Invalid Date';
+  }},
   { field: "startHour", headerName: "Rozpoczęcie", width: 100, valueFormatter: (params) => {
-        const date2 = dayjs(params)
-        return date2.isValid() ? date2.format('HH:mm') : 'Invalid Date';
-    }
+    const date2 = dayjs(params)
+    return date2.isValid() ? date2.format('HH:mm') : 'Invalid Date';
+  }
   },
   { field: "endHour", headerName: "Zakończenie", width: 100, valueFormatter: (params) => {
-        const date = dayjs(params)
-        return date.isValid() ? date.format('HH:mm') : 'Invalid Date';
-    }},
-    
-    { field: "studentFullName", headerName: "Student", width: 150 },
-    { field: "status", headerName: "Status", width: 120,
-      valueFormatter: (params) => {
-          switch(params){
-              case 'IP':
-                  return 'W realizacji'
-              case 'FI':
-                  return 'Zakończone'
-              case 'PD':
-                  return 'Zaplanowane'
-      }}
+    const date = dayjs(params)
+    return date.isValid() ? date.format('HH:mm') : 'Invalid Date';
+  }},
+  { field: "studentFullName", headerName: "Student", width: 150 },
+  { field: "status", headerName: "Status", width: 120,
+    valueFormatter: (params) => {
+      switch(params){
+        case 'IP':
+          return 'W realizacji'
+        case 'FI':
+          return 'Zakończone'
+        case 'PD':
+          return 'Zaplanowane'
+    }}
+  },
+  { field: "information",
+    headerName: "Informacje",
+    width: 100,
+    renderCell: (params) => {
+      return(
+        <DataGridButton onClick={() => {
+          setSelectedReservation(params.row);
+          handleOpen();
+        }}>
+          <InfoIcon />
+        </DataGridButton>
+      )
     },
-    { field: "information",
-      headerName: "Informacje",
-      width: 150,
-      renderCell: (params) => {
-        return(
-          <DataGridButton onClick={() => {
-            setSelectedReservation(params.row);
-            handleOpen();
-          }
-          }>
-            <InfoIcon />
-          </DataGridButton>
-        )
-      },
-    },
-  ];
+  },
+];
 
   return(
+    <Box>
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DataGrid
         rows={allReservations}
@@ -166,6 +163,7 @@ const columns = [
         />
       )}
     </LocalizationProvider>
+    </Box>
   )
 };
 export default AdminReservationsPage

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Box, TextField } from '@mui/material';
+import { Box, TextField, Button } from '@mui/material';
 import AuthContext from '../../context/AuthContext';
 import { useOverlay } from '../../context/OverlayContext';
 import { jwtDecode } from 'jwt-decode';
@@ -14,6 +14,15 @@ const AdminProfilePage = () => {
     });
     const { authTokens } = useContext(AuthContext);
     const { showSnackbar, showLoading, hideLoading } = useOverlay();
+
+    const [ newPassword, setNewPassword ] = useState('')
+    const [ oldPassword, setOldPassword ] = useState('')
+    const handleNewPasswordChange = (event) => {
+        setNewPassword(event.target.value);
+    };
+    const handleOldPasswordChange = (event) => {
+        setOldPassword(event.target.value);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -71,13 +80,80 @@ const AdminProfilePage = () => {
         fetchData();
     }, []);
 
+    const newPasswordFetch = () => {
+        const id = jwtDecode(authTokens.access).user_id
+
+        if(oldPassword == '') {
+            showSnackbar(`Stare hasło nie może być puste`, 'warning');
+            return null
+        }
+        if(newPassword == '') {
+            showSnackbar(`Nowe hasło nie może być puste`, 'warning');
+            return null
+        }
+        if(oldPassword.length < 8) {
+            showSnackbar(`Stare hasło musi zawierać conajmniej 8 znaków`, 'warning');
+            return null
+        }
+        if(newPassword.length < 8) {
+            showSnackbar(`Nowe hasło musi zawierać conajmniej 8 znaków`, 'warning');
+            return null
+        }
+        if(newPassword == oldPassword) {
+            showSnackbar(`Hasła nie mogą być takie same`, 'warning');
+            return null
+        }
+        fetch(`http://127.0.0.1:8000/api/changePassword/${id}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authTokens.access}`,
+            },
+            body: JSON.stringify({
+                "password": oldPassword,
+                "new_password": newPassword
+            })
+        })
+        .then((response) => {
+            if(response.status == 400) {
+                throw new Error('Invalid Data')
+            }
+            if (!response.ok) {
+                throw new Error()
+            }
+            return response.json();
+        })
+        .then(() => {
+            showSnackbar(`Pomyślnie zmieniono hasło użytkownika ${userData.username}`, 'success');
+        })
+        .catch((error) => {
+            if(error.message === 'Invalid Data') {
+                showSnackbar('Nieprawidłowe hasło', 'error');
+            } else {
+                showSnackbar('Wystąpił nieoczekiwany bład', 'error');
+            }
+            
+        })
+        .finally(() => {
+            setOldPassword('')
+            setNewPassword('')
+        }  )
+    }
+
     return (
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField label="Nazwa użytkownika" value={userData.username} disabled />
-            <TextField label="Status" value={userData.is_staff} disabled />
-            <TextField label="Imię" value={userData.first_name} disabled />
-            <TextField label="Nazwisko" value={userData.last_name} disabled />
-            <TextField label="Pozostałe godziny" value={userData.hours_left} disabled />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+                <TextField label="Nazwa użytkownika" value={userData.username} disabled />
+                <TextField label="Imię i nazwisko" value={userData.first_name + ' ' + userData.last_name} disabled />
+                <TextField label="Status" value={userData.is_staff} disabled />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+                <TextField label="Stare hasło" fullWidth value={oldPassword} onChange={handleOldPasswordChange} type='password'/>
+                <TextField label="Nowe hasło" fullWidth value={newPassword} onChange={handleNewPasswordChange} type='password'/>
+            </Box>
+            <Box sx={{flex: 1, display: 'flex', alignItems: 'stretch'}}>
+                <Button variant='contained' fullWidth onClick={newPasswordFetch}>Zmień hasło</Button>
+            </Box>
         </Box>
     );
 };

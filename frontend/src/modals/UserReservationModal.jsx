@@ -5,14 +5,13 @@ import AuthContext from '../context/AuthContext';
 import { useOverlay } from '../context/OverlayContext'
 import dayjs from 'dayjs';
 
-
 const ReservationModal = ({reservation, onClose, open, fetchData}) => {
 
   const { showSnackbar} = useOverlay();
   const {authTokens} = useContext(AuthContext);
-  const handleClick = () => {};
+  console.log(reservation)
 
-  const DeleteRecord = (id) => {
+  const deleteRecord = (id) => {
     fetch(`http://127.0.0.1:8000/api/reservations/${id}/`, {
       method: 'DELETE',
       headers: {
@@ -20,80 +19,48 @@ const ReservationModal = ({reservation, onClose, open, fetchData}) => {
         'Authorization': `Bearer ${authTokens.access}`,
       },
     })
-      .then((response) => {
-        if (!response.ok) {
-          showSnackbar(`Nastąpił błąd w wyborze rezerwacji. Status: ${response.status}`, 'error');
-        }
-        return response.status === 204 ? null : response.json();
-      })
-      .then(() => {
-        fetchData();
-        onClose(); 
-      })
-      .catch((error) => {
-        showSnackbar('Nieoczekiwany błąd', 'error');
-      });
-
+    .then((response) => {
+      if (!response.ok) {
+        showSnackbar('Wystąpił błąd podczas komunikacji z serwerem', 'error');
+      }
+      return response.status === 204 ? null : response.json();
+    })
+    .then(() => {
+      fetchData();
+      onClose(); 
+    })
+    .catch((error) => {
+      showSnackbar('Wystąpił nieoczekiwany błąd', 'error');
+    });
   };
 
+  return (  
+    <GenericModal open={open} onClose={onClose} title={'Rezerwacja'} width={500}>
 
-    return (  
-        <GenericModal open={open} onClose={onClose} title={'Rezerwacja'}>
+      <Box sx={{display: 'flex', gap: 2}}>
+        <TextField label='Data rezerwacji' value={dayjs(reservation.date).format('DD/MM/YYYY')} disabled />
+        <TextField label='Godzina rozpoczęcia' value={dayjs(reservation.startHour).format('HH:mm')} disabled />
+        <TextField label='Godzina zakończenia' value={dayjs(reservation.endHour).format('HH:mm')} disabled />
+      </Box>
 
-              <TextField  label='Data rezerwacji' value={dayjs(reservation.date).format('DD/MM/YYYY')}
-              sx={{width:300}} color='primary' disabled focused />
+      {reservation.status !== 'FI' && (
+        <Box sx={{display: 'flex', gap: 2}}>
+          <TextField label='Adres IP' value={reservation.adress} disabled fullWidth />
+          <TextField label='Hasło' value={reservation.password} disabled fullWidth />
+        </Box>
+      )}
 
-          <Box sx={{display: 'flex', width:300, marginBottom:1}}>
-
-              <TextField  label='Godzina rozpoczęcia' value={dayjs(reservation.startHour).format('HH:mm')}
-              sx={{width:150}} color='primary' disabled focused />
-
-              <TextField  label='Godzina zakończenia' value={dayjs(reservation.endHour).format('HH:mm')}
-              sx={{width:150, marginLeft:3}} color='primary' disabled />
-
-          </Box>
-
-          {reservation.status !== 'FI' && (
-                    <>
-                        <TextField  label='Adres IP' value={reservation.adress}
-                        sx={{width:300, marginBottom:1,}} color='primary' disabled />
-        
-                        <TextField  label='Hasło' value={reservation.password}
-                        sx={{width:300, marginBottom:1,}} color='primary' disabled />
-                        </>
-                )}
-
-
-              <TextField  label='Urządzenia' value={reservation.platform}
-              sx={{width:300, marginBottom:1,}} color='primary' readOnly />
-
-              <Box sx ={{display:'flex'}}>
-
-
-                    <Box sx={{ width:300, marginBottom:3}}>
-                        {reservation.status == 'PD' && (
-                            <>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                fullWidth
-                                sx={{
-                                    mt: 1,
-                                    marginLeft:3,
-                                    width:270
-                                }}
-                                onClick={() => DeleteRecord(reservation.id)}
-                                >
-                                    Usuń Rezerwacje
-                            </Button>
-                            </>
-                        )}
-
-                    </Box>
-                </Box>
-        </GenericModal>
-    );
- 
+      <TextField label='Urządzenia' value={reservation.platform} readOnly />
+      {reservation.status == 'PD' && (
+        <Button
+          variant="contained"
+          onClick={() => deleteRecord(reservation.id)}
+        >
+          Usuń Rezerwacje
+        </Button>
+      )}
+    </GenericModal>
+  );
 };
 
 export default ReservationModal
