@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Box, Button, Autocomplete, TextField, Checkbox, Select, MenuItem, ListItemText } from '@mui/material';
+import { Box, Button, Autocomplete, Chip, TextField, Checkbox, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { LocalizationProvider, DateCalendar } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -11,32 +11,9 @@ import AuthContext from '../context/AuthContext';
 
 import HarmonogramModal from '../modals/HarmonogramModal';
 
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-
 const HarmonogramPage = () => {  
   const [open, setOpen] = useState(false);
-  const handleOpen = () => {
-    if(!startHour){
-      showSnackbar('Godzina rozpoczęcie nie może być pusta', 'warning')
-      return;
-    }
-    if(!endHour){
-      showSnackbar('Godzina zakończenia nie może być pusta', 'warning')
-      return;
-    }
-    if(startHour>endHour){
-      showSnackbar('Godzina rozpoczęcie nie może być późniejsza od godziny zakończenia', 'warning')
-      return;
-    }
-    if(endHour.diff(startHour, 'hour') > hoursLeft){
-      showSnackbar('Przekroczono limit godzin', 'warning')
-      return;
-    }
-    if(containersPicker == null){
-      showSnackbar('Należy wybrać jedno stanowisko', 'warning')
-    }
-    setOpen(true)
-  }
+  const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   dayjs.locale('pl');
@@ -46,20 +23,54 @@ const HarmonogramPage = () => {
 
   const [hoursLeft, setHoursLeft] = useState(null);
   const [platformsPicker, setPlatformsPicker] = useState([]);
-  const [containersPicker, setContainersPicker] = useState([]);
 
   const [calendarData, setCalendarData] = useState(null);
+  const [columns, setColumns] = useState([])
   const [dataGridData, setDataGridData] = useState(null);
 
-  const [startHour, setStartHour] = useState(null);
-  const [endHour, setEndHour] = useState(null);
   const [disableSubmit, setDisableSubmit] = useState(true);
 
   const [formValues, setFormValues] = useState({
     selected_date: dayjs(),
-    device_types: [],
+    selected_device_types: [],
+    selected_hours: [],
+    selected_container: null,
+    selected_devices: [],
   });
-  const [platformNames, setPlatformNames] = useState(null)
+
+  const [checkboxDisabled, setCheckboxDisabled] = useState();
+  const [checkboxChecked, setCheckboxChecked] = useState(new Array(24).fill(false));
+
+useEffect(() => {
+  console.log(checkboxChecked)
+}, [checkboxChecked]);
+
+  const handleCheck = (container, row) => {
+    // Avoid triggering a loop by updating only the necessary state
+    console.log('changing container to', container)
+    console.log(checkboxDisabled)
+    if(formValues.selected_container == null){
+      setFormValues(prev => ({
+        ...prev,
+        selected_container: container,
+      }));
+
+      const updatedCheckboxChecked = checkboxChecked
+      updatedCheckboxChecked[row.id] = true
+      setCheckboxChecked(updatedCheckboxChecked)
+
+      const updatedCheckboxDisabled = checkboxDisabled
+      Object.keys(updatedCheckboxDisabled).forEach(key => updatedCheckboxDisabled[key] = true);
+      updatedCheckboxDisabled[container] = false
+      setCheckboxDisabled(updatedCheckboxDisabled)
+      // console.log(updatedCheckboxDisabled)
+    } else {
+      const updatedCheckboxChecked = checkboxChecked
+      updatedCheckboxChecked[row.id] = true
+      setCheckboxChecked(updatedCheckboxChecked)
+      console.log(updatedCheckboxChecked)
+    }
+  }
 
   const fetchDeviceTypes = () => {
     if(authTokens) {
@@ -117,7 +128,7 @@ const HarmonogramPage = () => {
   }
 
   const fetchCalendar = (newMonth) => {
-    if(formValues.device_types.length == 0) {
+    if(formValues.selected_device_types.length == 0) {
       // console.log('fetchCalendar has been activated, but device types are empty')
       return null
     }
@@ -126,7 +137,7 @@ const HarmonogramPage = () => {
       month: newMonth ? newMonth.month()+1 : formValues.selected_date.month() + 1,
     });
   
-    formValues.device_types.forEach((deviceType) => {
+    formValues.selected_device_types.forEach((deviceType) => {
       queryParams.append('device_types', deviceType);
     });
   
@@ -155,13 +166,14 @@ const HarmonogramPage = () => {
   }
 
   const fetchDataGrid = () => {
+    showLoading()
     const queryParams = new URLSearchParams({
       year: formValues.selected_date.year(),
       month: formValues.selected_date.month() + 1,
       day: formValues.selected_date.date()
     });
   
-    formValues.device_types.forEach((deviceType) => {
+    formValues.selected_device_types.forEach((deviceType) => {
       queryParams.append('device_types', deviceType);
     });
   
@@ -183,27 +195,48 @@ const HarmonogramPage = () => {
     .then((data) => {
       const fdata = Object.values(data)[0]
       setDataGridData(fdata)
+
+      const disabledState = {};
+  
+      // Initialize both states with false for each containerId
+      Object.keys(fdata[0].containers).forEach(containerId => {
+        disabledState[containerId] = false;
+      });
+  
+      // Set the state
+      console.log(disabledState)
+      setCheckboxDisabled(disabledState);    
     })
     .catch((error) => {
       showSnackbar('Błąd podczas pobierania danych', 'error')
-      console.log(error)
     })
+    .finally(
+      hideLoading()
+    )
   }
 
+  // download device types and available hours
   useEffect(() => {
     fetchDeviceTypes()
     fetchHoursLeft()
   }, []);
 
-  const [columns, setColumns] = useState([])
+  // set up columns when dataGridData is updated
   useEffect(() => {
     if(dataGridData){
+      console.log('bef', checkboxDisabled)
       const containerColumns = Object.keys(dataGridData[0].containers).map(containerId => ({
         field: containerId,
         headerName: `Stanowisko ${containerId}`,
         width: 120,
         renderCell: (params) => {
-          return(<Checkbox disabled={!params.row.containers[containerId]}/>)
+          return(
+            <Checkbox
+              disabled={checkboxDisabled[params.field] || !params.row.containers[containerId]}
+              checked={checkboxChecked[params.row.id] && !(checkboxDisabled[params.field] || !params.row.containers[containerId])}
+              onChange={() => handleCheck(params.field, params.row)}
+            />
+          )
         }
       }));
   
@@ -215,28 +248,34 @@ const HarmonogramPage = () => {
           renderCell: (params) => {
             return(params.value.toString() + ':00')
           }
-        },
-        
-        ...containerColumns],
+        }, ...containerColumns],
       )
+
+
     }
   }, [dataGridData]);
 
+  // update dataGridData and calendarData when device types are changed
   useEffect(() => {
-    if(formValues.device_types.length > 0){
+    if(formValues.selected_device_types.length > 0){
       fetchCalendar()
       fetchDataGrid()
     } else {
       setDataGridData(null)
       setColumns([])
     }
-  }, [formValues.device_types]);
+  }, [formValues.selected_device_types]);
 
+  // update dataGridData when device types are changed
   useEffect(() => {
-    if(formValues.device_types.length > 0){
+    if(formValues.selected_device_types.length > 0){
       fetchDataGrid()
     }
   }, [formValues.selected_date]);
+
+  useEffect(() => {
+    console.log(dataGridData)
+  }, [dataGridData]);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pl">
@@ -248,11 +287,9 @@ const HarmonogramPage = () => {
           getOptionLabel={(option) => option.model}
           onChange={(event, value) => {
             if (value) {
-              const selectedPlatformNames = value.map((item) => item.model);
-              setPlatformNames(selectedPlatformNames);
               setFormValues((prevValues) => ({
                   ...prevValues,
-                  device_types: value.map((item) => item.device_type_id)
+                  selected_device_types: value.map((item) => item.device_type_id)
               }));
             }
           }}
@@ -277,12 +314,11 @@ const HarmonogramPage = () => {
               },
             },
           }}
-          // sx={{ overflow: 'auto', minWidth: '500px', maxWidth: '100%'}}
           localeText={{ 
             noRowsLabel: 
               formValues.selected_date === null 
               ? 'Nie wybrano daty' 
-              : (formValues.device_types && formValues.device_types.length === 0 
+              : (formValues.selected_device_types && formValues.selected_device_types.length === 0 
                 ? 'Nie wybrano urządzeń' 
                 : 'Brak danych')
           }}
@@ -292,7 +328,7 @@ const HarmonogramPage = () => {
       <Box sx={{display: "flex", flexDirection: "column", gap: 2}}>
         <DateCalendar
           value={formValues.selected_date}
-          minDate={dayjs('2025/01/28')}
+          minDate={dayjs('01/01/2025')}
           defaultValue={dayjs()}
           onMonthChange={(newMonth) => {
             fetchCalendar(newMonth)
@@ -307,73 +343,13 @@ const HarmonogramPage = () => {
             }))
           }}
         />
-        <Box sx={{display: 'flex', gap: 2}}>
-        <TimePicker
-          flex={1}
-          display='flex'
-          label="Rozpoczęcie"
-          value={startHour}
-          onChange={(newValue) => setStartHour(newValue)}
-          maxTime={dayjs().hour(23).minute(0)} // Maximum time: 23:00
-          minutesStep={60}  // Only allow selection in 60-minute intervals (whole hours)
-          inputFormat="HH:mm"  // Format the input as hour:minute (e.g., 1:00)
-          // renderInput={(params) => <TextField {...params} />}
-          slotProps={{
-            layout: {
-              sx: {
-                ul: {
-                  '::-webkit-scrollbar': {
-                    width: '2px',
-                  },
-                },
-              },
-            }
-          }}
-        />
-        <TimePicker
-          flex={1}
-          display='flex'
-          label="Zakończenie"
-          value={endHour}
-          onChange={(newValue) => setEndHour(newValue)}
-          maxTime={dayjs().hour(23).minute(0)} // Maximum time: 23:00
-          minutesStep={60}  // Only allow selection in 60-minute intervals (whole hours)
-          inputFormat="HH:mm"  // Format the input as hour:minute (e.g., 1:00)
-          slotProps={{
-            layout: {
-              sx: {
-                ul: {
-                  '::-webkit-scrollbar': {
-                    width: '2px',
-                  },
-                },
-              },
-            }
-          }}
-        />
-        </Box>
-        <Select
-          value={containersPicker}
-          onChange={(event) => setContainersPicker(event.target.value)}
-          displayEmpty
-          renderValue={(selected) => (selected ? 'Stanowisko '+selected : 'Wybierz stanowisko')}
-        >
-          <MenuItem value="" disabled>
-            Wybierz stanowisko
-          </MenuItem>
-          {Object.keys(dataGridData?.[0]?.containers || {}).map((key) => (
-            <MenuItem key={key} value={key}>
-              Stanowisko {key}
-            </MenuItem>
-          ))}
-        </Select>
         
-        <Button variant="contained" onClick={handleOpen} disabled={disableSubmit || formValues.device_types.length == 0}>
+        <Button variant="contained" onClick={handleOpen} disabled={disableSubmit || formValues.selected_device_types.length == 0}>
           Zarezerwuj
         </Button>
       </Box>
     </Box>
-    <HarmonogramModal open={open} onClose={handleClose} selectedDate={formValues.selected_date} startHour={startHour} endHour={endHour} container={containersPicker} selectedDevices={platformNames}/>
+    <HarmonogramModal open={open} onClose={handleClose} selected_date={formValues.selected_date}/>
     </LocalizationProvider>
   );
 };
