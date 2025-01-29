@@ -37,7 +37,10 @@ const HarmonogramPage = () => {
     }
     setOpen(true)
   }
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false)
+    fetchDataGrid()
+  }
 
   dayjs.locale('pl');
 
@@ -54,6 +57,7 @@ const HarmonogramPage = () => {
   const [startHour, setStartHour] = useState(null);
   const [endHour, setEndHour] = useState(null);
   const [disableSubmit, setDisableSubmit] = useState(true);
+  const [devicesIDs, setDevicesIDs] = useState([]);
 
   const [formValues, setFormValues] = useState({
     selected_date: dayjs(),
@@ -186,7 +190,7 @@ const HarmonogramPage = () => {
     })
     .catch((error) => {
       showSnackbar('Błąd podczas pobierania danych', 'error')
-      console.log(error)
+      // console.log(error)
     })
   }
 
@@ -313,7 +317,13 @@ const HarmonogramPage = () => {
           display='flex'
           label="Rozpoczęcie"
           value={startHour}
-          onChange={(newValue) => setStartHour(newValue)}
+          onChange={(newValue) => {
+            setStartHour(newValue)
+            // console.log(dayjs(newValue).format('H'))
+            // console.log(containersPicker)
+            // console.log(Object.values(dataGridData[dayjs(newValue).format('H')]["devices"]).map(arr => arr[0]))
+            setDevicesIDs(Object.values(dataGridData[dayjs(newValue).format('H')]["devices"]).map(arr => arr[0]))
+          }}
           maxTime={dayjs().hour(23).minute(0)} // Maximum time: 23:00
           minutesStep={60}  // Only allow selection in 60-minute intervals (whole hours)
           inputFormat="HH:mm"  // Format the input as hour:minute (e.g., 1:00)
@@ -373,7 +383,7 @@ const HarmonogramPage = () => {
         </Button>
       </Box>
     </Box>
-    <HarmonogramModal open={open} onClose={handleClose} selectedDate={formValues.selected_date} startHour={startHour} endHour={endHour} container={containersPicker} selectedDevices={platformNames}/>
+    <HarmonogramModal open={open} onClose={handleClose} selectedDate={formValues.selected_date} startHour={startHour} endHour={endHour} container={containersPicker} selectedDevices={platformNames} devicesIDs={devicesIDs}/>
     </LocalizationProvider>
   );
 };

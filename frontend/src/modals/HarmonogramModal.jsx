@@ -7,7 +7,7 @@ import AuthContext from '../context/AuthContext';
 import { useOverlay } from '../context/OverlayContext';
 import { jwtDecode } from 'jwt-decode';
 
-const HarmonogramModal = ({open, onClose, selectedDate, startHour, endHour, selectedDevices, container}) => {
+const HarmonogramModal = ({open, onClose, selectedDate, startHour, endHour, selectedDevices, container, devicesIDs}) => {
 
     const { authTokens, user } = useContext(AuthContext);
     const { showSnackbar, showLoading, hideLoading } = useOverlay();
@@ -26,15 +26,14 @@ const HarmonogramModal = ({open, onClose, selectedDate, startHour, endHour, sele
                 "valid_since": `${dayjs(selectedDate).format('YYYY-MM-DD')}T${dayjs(startHour).format('HH:mm:ss')}`,
                 "valid_until": `${dayjs(selectedDate).format('YYYY-MM-DD')}T${dayjs(endHour).format('HH:mm:ss')}`,
                 "container": container.toString(),
-                "devices": [
-                    "322f894d39c14eab94e00d528b3ef6e5" // Wyciągnąć z Harmonogramu jakieś jedne wspólne id dla wybranych dat, a jeżeli takiego nie ma to hamsko odrzucić rezerwację
-                ],
+                "devices": devicesIDs,
                 "user": jwtDecode(authTokens.access).user_id,
                 "root_password": "root", // Dodać pole w modalu do customizacji
                 "status": "PD"
             })
         })
         .then(response => {
+            // console.log(response)
             if (!response.ok) {
                 throw new Error();
             }
@@ -42,6 +41,7 @@ const HarmonogramModal = ({open, onClose, selectedDate, startHour, endHour, sele
         })
         .then((data) => {
             showSnackbar(`Pomyślnie przesłano rezerwację`, 'success')
+            onClose()
         })
         .catch(error => {
             showSnackbar('Wystąpił nieoczekiwany błąd', 'error')
