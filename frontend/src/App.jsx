@@ -42,6 +42,9 @@ function App() {
               <Route path="/admin-reservations" element={<AdminRoute><SideNavWrapper><AdminReservationsPage /></SideNavWrapper></AdminRoute>} />
               <Route path="/admin-users" element={<AdminRoute><SideNavWrapper><AdminUsersPage /></SideNavWrapper></AdminRoute>} />
               <Route path="/admin-profile" element={<AdminRoute><SideNavWrapper><AdminProfilePage /></SideNavWrapper></AdminRoute>} />
+              <Route path="/admin-reservations/:studentId" element={<AdminRoute><SideNavWrapper><AdminReservationsPage /></SideNavWrapper></AdminRoute>} />
+              <Route path="/admin-users/:studentId" element={<AdminRoute><SideNavWrapper><AdminUsersPage /></SideNavWrapper></AdminRoute>} />
+              
 
               {/* Available only for user */}
               <Route path="/user-reservations" element={<UserRoute><SideNavWrapper><UserReservationsPage /></SideNavWrapper></UserRoute>} />

@@ -5,6 +5,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import ReservationModal from '../../modals/AdminReservationModal.jsx';
 import dayjs from 'dayjs';
+import { useParams } from 'react-router-dom';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'; 
 import AuthContext from '../../context/AuthContext.jsx';
 import { useOverlay } from '../../context/OverlayContext.jsx';
@@ -18,7 +19,9 @@ const AdminReservationsPage = () => {
   const [open, setOpen] = useState(false);
 
   const location = useLocation();
+  const { studentId } = useParams();
 
+  
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const { authTokens } = useContext(AuthContext);
@@ -66,6 +69,14 @@ const AdminReservationsPage = () => {
         };
       });
       setAllReservations(processedReservations);
+      if (studentId) {
+        const filteredReservations = processedReservations.filter(
+          (reservation) => reservation.studentID === parseInt(studentId) // Konwertujemy studentId z URL na liczbę
+        );
+        setAllReservations(filteredReservations);
+      } else {
+        setAllReservations(processedReservations);
+      }
       hideLoading();
     })
     .catch((error) => {
@@ -78,14 +89,6 @@ const AdminReservationsPage = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-  if (location.state?.filterByStudentId) {
-    const filteredReservations = allReservations.filter(
-      (reservation) => reservation.studentID === location.state.filterByStudentId
-    );
-    setAllReservations(filteredReservations);
-    window.history.replaceState({}, document.title);
-  }}, [location.state]);
       
 const columns = [
   { field: "date", headerName: "Data", width: 100, valueFormatter: (params) => {

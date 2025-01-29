@@ -3,13 +3,17 @@ import { Box,TextField, Button} from '@mui/material';
 import GenericModal from './GenericModal';
 import AuthContext from '../context/AuthContext';
 import { useOverlay } from '../context/OverlayContext'
+import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 const ReservationModal = ({reservation, onClose, open, fetchData}) => {
 
+  const navigate = useNavigate();
   const { showSnackbar} = useOverlay();
   const { authTokens } = useContext(AuthContext);
-  const handleClick = () => {};
+  const handleClick = () => {
+    navigate(`/admin-users/${reservation.studentID}`);
+  };
 
   const DeleteRecord = (id) => {
     fetch(`http://127.0.0.1:8000/api/reservations/${id}/`, {

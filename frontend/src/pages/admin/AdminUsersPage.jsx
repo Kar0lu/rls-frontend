@@ -4,36 +4,19 @@ import AuthContext from '../../context/AuthContext';
 import InfoIcon from '@mui/icons-material/Info';
 import DataGridButton from '../../components/DataGridButton';
 import { Box } from '@mui/material';
+import { useParams } from 'react-router-dom';
 import { useOverlay } from '../../context/OverlayContext';
 import AdminUsersModal from '../../modals/AdminUsersModal';
 
 const AdminUsersPage = () => {
-    const columns = [
-        { field: 'first_name', headerName: 'Imię', width: 150},
-        { field: 'last_name', headerName: 'Nazwisko', width: 150},
-        { field: 'username', headerName: 'Nazwa użytkownika', width: 150},
-        { field: 'email', headerName: 'E-mail', width: 150},
-        {
-            field: 'informations',
-            headerName: 'Informacje',
-            width: 100,
-            align: 'center',
-            headerAlign: 'center',
-            renderCell: (params) => {
-                return(
-                    <DataGridButton onClick={() => handleOpenModal(params.row)}>
-                        <InfoIcon />
-                    </DataGridButton>
-                );
-            },
-        },
-    ];
 
-    const [studentsList, setStudentsList] = useState()
+
+    const [studentsList, setStudentsList] = useState([]);
 
     const { authTokens } = useContext(AuthContext);
     const { showSnackbar, showLoading, hideLoading } = useOverlay();
     const [activeUser, setActiveUser] = useState(null)
+    const { studentId } = useParams(); 
     
     const [modalOpen, setModalOpen] = useState(false);
     const handleOpenModal = (row) => {
@@ -45,6 +28,16 @@ const AdminUsersPage = () => {
     useEffect(() => {
         fetchUsers()
     }, []);
+
+    useEffect(() => {
+        if (studentId && studentsList.length > 0) {
+            const user = studentsList.find((student) => student.id.toString() === studentId);
+            if (user) {
+                setActiveUser(user);
+                setModalOpen(true);
+            }
+        }
+    }, [studentId, studentsList]);
 
     const fetchUsers = () => {
         showLoading()
@@ -62,7 +55,7 @@ const AdminUsersPage = () => {
             return response.json()
         })
         .then((data) => {
-            setStudentsList(data.results)
+            setStudentsList(data.results || []); 
         })
         .catch((error) => {
             showSnackbar('Błąd podczas pobierania danych', 'error')
@@ -97,6 +90,27 @@ const AdminUsersPage = () => {
             hideLoading()
         )
     }
+
+    const columns = [
+        { field: 'first_name', headerName: 'Imię', width: 150},
+        { field: 'last_name', headerName: 'Nazwisko', width: 150},
+        { field: 'username', headerName: 'Nazwa użytkownika', width: 150},
+        { field: 'email', headerName: 'E-mail', width: 150},
+        {
+            field: 'informations',
+            headerName: 'Informacje',
+            width: 100,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params) => {
+                return(
+                    <DataGridButton onClick={() => handleOpenModal(params.row)}>
+                        <InfoIcon />
+                    </DataGridButton>
+                );
+            },
+        },
+    ];
 
     return(
         <Box>

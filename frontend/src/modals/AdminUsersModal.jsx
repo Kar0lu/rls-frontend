@@ -53,8 +53,8 @@ const AdminUsersModal = ({open, onClose, row, removeUserFetch }) => {
     }
 
     const studentReservations = () => {
-        navigate('/admin-reservations', { state: { filterByStudentId: row?.id } });
-    }
+        navigate(`/admin-reservations/${row?.id}`);
+    };
 
     return(
         <GenericModal open={open} onClose={onClose} title={'Student'} width={500}>
